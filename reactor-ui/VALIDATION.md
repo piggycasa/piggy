@@ -1,12 +1,29 @@
 # PIGGY validation — 27–28 October 2026
 
-PIGGY is live at [piggy.casa](https://piggy.casa). Mainnet token creation, guarded feeds, game-reward claims and a production $PIGGY-holder claim have finalized; their scope and sponsored test funding are recorded below. Testnet remains unverified.
+PIGGY is live at [piggy.casa](https://piggy.casa). Mainnet token creation, guarded feeds, game-reward claims and a production $PIGGY-holder claim have finalized; their scope and sponsored test funding are recorded below. The fresh Mainnet instance and the complete Testnet rehearsal also passed on 28 October; see the current evidence below.
 
 ## 28 October: Streamflow recipient eligibility
 
 The current suite passes **244 tests**. The live frontend passed **130 read-only production checks**, plus four dedicated desktop/phone/landscape checks for the Streamflow claim explanation. Railway deployment `05b1d3ac-8dd8-4a02-8a36-fe2be37ddbbc` runs the verified recipient-attribution module, with all six roles ready. The fresh publisher has `streamflowLocks: true`; the legacy publisher does not. A read-only capture returned the new recipient policy, and the existing publisher journal was byte-for-byte unchanged during verification. No lock was created, no token transfer was made, and no previous claim was rewritten. See [STREAMFLOW-REWARDS.md](docs/STREAMFLOW-REWARDS.md) for scope and snapshot timing.
 
-The Testnet program was deployed and verified against the reviewed binary during this run, but the complete rehearsal is still unverified after provider throttling and delayed transaction reads. This does not establish fresh-game Mainnet feed/claim test receipts. Existing pre-launch receipts below retain their original scope.
+## 28 October: completed fresh-instance launch checks
+
+Testnet at `57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34` passed **7 checks / 13 finalized rehearsal transactions**, including all four payout modes, later-feed earnings, exact guard rejection, funded holder claims, real-clock settlement, rollover and a historical jackpot claim. The already-deployed binary matched the reviewed SHA-256. PublicNode completed the rehearsal with paced requests and a bounded test priority fee; no feature checks were bypassed.
+
+Fresh Mainnet version `1793155991891` passed the **11-check release preflight with no blockers**. The live `piggy.casa` interface executed two one-key feeds and a game-reward claim with an isolated Node-backed wallet provider. They resulted in exactly two keys, 150,001 lamports contributed and 60 seconds added. These UI tests do not establish personal browser-extension or mobile-wallet handoff behavior.
+
+| Fresh Mainnet operation | Finalized slot | Receipt |
+| --- | ---: | --- |
+| First one-key feed | 462370243 | [Transaction](https://solscan.io/tx/66RiUz9iM1swnzZxB4bekHV9g9qBqVYJzV8xU3U8s9NDei4mjxGCR5Th81gTckpFst89AbeX7of8VCZefdthp6MH) |
+| Second one-key feed | 462370419 | [Transaction](https://solscan.io/tx/3HFDLZFkcXfMB5MvbJBhe4hkZJQLaZKCGMJ3XJx6JozZvG6Z13tyCZvr6aQG1XWiEnT4quteRbL7b7Vrh7Ke81uY) |
+| Game rewards claimed | 462370467 | [Transaction](https://solscan.io/tx/5Gq5eJsxEJnmQRrzFdjA1FqUENSc69uDKdGhgWesRGNPw4YNihjcEoWEGM5DzSxMMqjJPHRtrHhLN2XcQStxShsT) |
+| Holder rewards claimed | 462370858 | [Transaction](https://solscan.io/tx/49sPguTC4t3Le9PH1exNpgy6SjRUrfKkE7ZTAQwCSaTr2GcaGz69ZjGngZkvsv69i49DnEAEQML6xBFydJpC7pve) |
+
+The holder allocation was **0.002024 SOL gross**, comprising a disclosed **0.002 SOL sponsored test deposit** and **0.000024 SOL of actual feed fees**. Net receipt was 0.00095228 SOL after 0.00106172 SOL of permanent claim-account rent and 0.00001 SOL transaction fees. The existing PIGGY token balance was unchanged, temporary WSOL rent returned, liabilities reconciled, an unsigned duplicate claim was rejected with error 1005, and the live UI disabled the already-claimed reward. An RPC minimum-context-slot delay was resolved with read-only reconciliation; the claim was not resubmitted.
+
+The test returned **0.00194728 SOL** to the launch wallet and preserved the test wallet's original 0.003 SOL reserve. Total net cost across the launch, holder-test and publisher wallets was **0.004382801 SOL**, including retained account rent and remaining game pools. Gross payer debits were 0.008317361 SOL, within the approved 0.02 SOL ceiling. No token purchase, program upgrade or live-round reset occurred. The regular hourly publisher configuration remained unchanged and its process resumed; the next opening snapshot uses Streamflow-recipient policy while the original opening snapshot remains intact.
+
+The current code passed **244 unit tests** and the live site passed **130 read-only production checks** over desktop, narrow panes, phones and landscape. This is tested launch evidence, not an independent security audit.
 
 Local checks use a dedicated Solana validator at `127.0.0.1:18899`; the UI and fixture signer bridge run on loopback ports 4317 and 4318. Local wallets and eligibility mints are fixtures. Private keys, genesis ledger and generated reports remain in ignored `.openai/local/`. Devnet has separate real-network receipts. Passing these checks is not an independent security audit.
 
@@ -46,7 +63,7 @@ Fresh actual-chain reports are `.openai/local/solana/reports/{public-wallet-inte
 
 ## Fresh-launch validation scope
 
-The fresh-launch client selects version `1793155991891`, game PDA `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`, with a separate holder vault and `/launch-proofs/index.json` proof domain. It reuses the same program, mint and reviewed executable. Game initialization, Round 1 opening, operator activation and any fresh-instance transaction checks need their own evidence; selecting the configuration or deriving a Round 1 address does not establish those steps.
+The fresh-launch client selects version `1793155991891`, game PDA `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`, with a separate holder vault and `/launch-proofs/index.json` proof domain. It reuses the same program, mint and reviewed executable. The current fresh-instance transaction evidence is recorded above. Older initialization and operator-activation evidence remains separate from the pre-launch instance below.
 
 The actual feed and claim receipts in the next section belong to pre-launch version `1793081200001`. They remain historical evidence for that instance. Its existing rewards and accounts are preserved at [test-round claims](https://piggy.casa/test-claims/) using the original `/proofs/index.json`. No fresh-instance canary result is inferred from those receipts.
 

@@ -15,7 +15,10 @@ const opts = options(); assertTestCluster(opts.cluster);
 const deployTransport = opts['deploy-transport'] || 'rpc';
 if (!['rpc', 'tpu'].includes(deployTransport)) throw new Error('--deploy-transport must be rpc or tpu.');
 const cluster = opts.cluster, url = publicRpc(cluster, opts.rpc || process.env.PIGGY_RPC_URL), dir = path.join(PUBLICNET, cluster);
-const conn = rpcConnection(url), reportFile = path.join(dir, 'rehearsal-report.json');
+const conn = rpcConnection(url,{minIntervalMs:cluster==='testnet'?400:0}), reportFile = path.join(dir, 'rehearsal-report.json');
+const priorityFee=Number(opts['priority-fee-micro-lamports']||0);
+if(!Number.isSafeInteger(priorityFee)||priorityFee<0||priorityFee>1_000_000)throw new Error('Invalid test priority fee.');
+const computeBudget=()=>[ComputeBudgetProgram.setComputeUnitLimit({units:1_300_000}),...(priorityFee?[ComputeBudgetProgram.setComputeUnitPrice({microLamports:priorityFee})]:[])];
 const report = { schemaVersion: 1, cluster, testOnly: true, startedAt: new Date().toISOString(), ok: false, phase: 'network', checks: [], transactions: [], blockers: [] };
 const runId = `${Date.now()}-${process.pid}`, refusedReport = path.join(dir, 'reports', `rehearsal-refused-${runId}.json`);
 let payer, releaseLock, reportWritable = false;
@@ -24,7 +27,7 @@ async function pass(name, details = {}) { report.checks.push({ name, ...details 
 async function send(name, instructions, signers = [payer]) {
   assertGenesis(cluster, await conn.getGenesisHash());
   const block = await conn.getLatestBlockhash('confirmed');
-  const tx = new Transaction({ feePayer: signers[0].publicKey, ...block }).add(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_300_000 }), ...instructions);
+  const tx = new Transaction({ feePayer: signers[0].publicKey, ...block }).add(...computeBudget(), ...instructions);
   tx.sign(...signers);
   const signature = base58Encode(tx.signature);
   const row = { name, signature, status: 'submitted', submittedAt: new Date().toISOString(), blockhash: block.blockhash, lastValidBlockHeight: block.lastValidBlockHeight }; report.transactions.push(row); await persist();
@@ -36,7 +39,7 @@ async function send(name, instructions, signers = [payer]) {
     const status = (await conn.getSignatureStatuses([signature])).value[0];
     if (status?.err) { row.status = 'failed'; row.error = status.err; await persist(); throw new Error(name + ' failed on chain.'); }
     if (status && ['confirmed', 'finalized'].includes(status.confirmationStatus)) { row.status = status.confirmationStatus; row.slot = status.slot; await persist(); return signature; }
-    if (await conn.getBlockHeight('confirmed') > block.lastValidBlockHeight) throw new Error(name + ' expired. Check the recorded signature before rerunning.');
+    if (await conn.getBlockHeight('finalized') > block.lastValidBlockHeight) throw new Error(name + ' expired. Check the recorded signature before rerunning.');
     await new Promise(resolve => setTimeout(resolve, 600));
   }
   throw new Error(name + ' confirmation timed out. The submitted signature is retained; reconcile it before rerunning.');
@@ -118,11 +121,12 @@ try {
   for (const [name, minimumKeys, expiresAtSlot, expectedCustom] of [['slippage', 1_000_000n, BigInt(await conn.getSlot('confirmed') + 150), 22], ['expired quote', 1n, 1n, 21]]) {
     const before = (await getRound()).accum_sol_pot, amount = costForExactKeys(before, 1n).lamports, wrapped = await wsol(a, amount);
     const block = await conn.getLatestBlockhash('confirmed');
-    const tx = new Transaction({ feePayer: a.publicKey, ...block }).add(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_300_000 }), ...wrapped.before, sdk.guardedPurchaseInstruction({ programId: program.publicKey, buyer: a.publicKey, version, roundId: 1, source: wrapped.temp.publicKey, amount, minimumKeys, expiresAtSlot }), ...wrapped.after); tx.sign(a, wrapped.temp);
+    const tx = new Transaction({ feePayer: a.publicKey, ...block }).add(...computeBudget(), ...wrapped.before, sdk.guardedPurchaseInstruction({ programId: program.publicKey, buyer: a.publicKey, version, roundId: 1, source: wrapped.temp.publicKey, amount, minimumKeys, expiresAtSlot }), ...wrapped.after); tx.sign(a, wrapped.temp);
     const simulation = await conn.simulateTransaction(tx);
-    const detail = { name, expectedCustom, expectedInstructionIndex: 4, actualError: simulation.value.err, logs: simulation.value.logs ?? [], unitsConsumed: simulation.value.unitsConsumed ?? null };
+    const expectedInstructionIndex=computeBudget().length+3;
+    const detail = { name, expectedCustom, expectedInstructionIndex, actualError: simulation.value.err, logs: simulation.value.logs ?? [], unitsConsumed: simulation.value.unitsConsumed ?? null };
     (report.guardSimulations ??= []).push(detail); await persist();
-    assertSimulationCustomError(simulation.value.err, expectedCustom, 4); assert.equal((await getRound()).accum_sol_pot, before);
+    assertSimulationCustomError(simulation.value.err, expectedCustom, expectedInstructionIndex); assert.equal((await getRound()).accum_sol_pot, before);
     await pass(name + ' rejects with the exact guard error without mutating game balances', detail);
   }
   const claim = await wsol(a); await send('claim live game rewards as native SOL', [...claim.before, sdk.withdrawGameInstruction({ programId: program.publicKey, wallet: a.publicKey, version, roundId: 1, destination: claim.temp.publicKey }), ...claim.after], [a, claim.temp]);

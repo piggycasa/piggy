@@ -37,8 +37,14 @@ export function assertGenesis(cluster, actual) {
 export function assertTestCluster(cluster) {
   if (!['devnet', 'testnet'].includes(cluster)) throw new Error('This harness cannot generate identities, request airdrops, deploy, or send on mainnet. Use the reviewed launch procedure.');
 }
-export function rpcConnection(url) {
-  return new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true, confirmTransactionInitialTimeout: 45_000, fetch: publicRpcFetch });
+export function rpcConnection(url, { minIntervalMs = 0 } = {}) {
+  let nextRequestAt=0;
+  const pacedFetch=async(resource,init)=>{
+    const now=Date.now(),at=Math.max(now,nextRequestAt);nextRequestAt=at+minIntervalMs;
+    if(at>now)await new Promise(resolve=>setTimeout(resolve,at-now));
+    return publicRpcFetch(resource,init);
+  };
+  return new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true, confirmTransactionInitialTimeout: 45_000, fetch: pacedFetch });
 }
 /** Only retry reads. A transaction submission always retains its original journal outcome. */
 export async function publicRpcFetch(resource, init = {}, { transport = fetch, wait = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {

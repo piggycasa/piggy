@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-28",
+  "scope": "Fresh Mainnet game canary and Testnet rehearsal. Node-backed isolated browser signer; not a personal wallet extension or an independent security audit.",
+  "mainnet": {
+    "schemaVersion": 1,
+    "cluster": "mainnet-beta",
+    "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+    "programId": "3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK",
+    "gameVersion": "1793155991891",
+    "binarySha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65",
+    "ok": true,
+    "at": "2026-10-28T06:15:28.542Z",
+    "transactions": [
+      {
+        "kind": "feed",
+        "signature": "66RiUz9iM1swnzZxB4bekHV9g9qBqVYJzV8xU3U8s9NDei4mjxGCR5Th81gTckpFst89AbeX7of8VCZefdthp6MH"
+      },
+      {
+        "kind": "feed",
+        "signature": "3HFDLZFkcXfMB5MvbJBhe4hkZJQLaZKCGMJ3XJx6JozZvG6Z13tyCZvr6aQG1XWiEnT4quteRbL7b7Vrh7Ke81uY"
+      },
+      {
+        "kind": "gameClaim",
+        "signature": "5Gq5eJsxEJnmQRrzFdjA1FqUENSc69uDKdGhgWesRGNPw4YNihjcEoWEGM5DzSxMMqjJPHRtrHhLN2XcQStxShsT"
+      },
+      {
+        "kind": "holderClaim",
+        "signature": "49sPguTC4t3Le9PH1exNpgy6SjRUrfKkE7ZTAQwCSaTr2GcaGz69ZjGngZkvsv69i49DnEAEQML6xBFydJpC7pve"
+      }
+    ],
+    "checks": {
+      "twoWholeKeys": true,
+      "originalCurveEntryLamports": "150001",
+      "timerAddedSeconds": 60,
+      "gameClaimCleared": true,
+      "holderClaim": {
+        "grossLamports": "2024000",
+        "feeLamports": 10000,
+        "permanentReceiptRentLamports": "1061720",
+        "netSolReceivedLamports": "952280",
+        "temporaryRentReturned": true,
+        "piggyUnchanged": true
+      },
+      "duplicateRejected": true,
+      "piggyBalanceUnchanged": true
+    },
+    "fundingDisclosure": {
+      "sponsoredHolderLamports": 2000000,
+      "organicHolderFeesLamports": 24000,
+      "refund": {
+        "amountLamports": 1947280,
+        "feeLamports": 5000,
+        "originalCanaryReservePreservedLamports": 3000000,
+        "destination": "Av1VgVPpKayA9ywDbuKwdY9RnSFHynWN2M4nT1vDm7s9",
+        "signature": "4LDtSFcWHQYJSRyvPyZtg2W82sKUVuxgnduXfHSGjBJ53gKKrMpmwHEcKWt7xWzwxnaZpSiey6SZ8Y9PpCasn85b",
+        "status": "finalized",
+        "blockhash": "9ttVrhd2V8nnX2xbzBzC3Scpv9kX8FfxhuepkE18yJnW",
+        "lastValidBlockHeight": 440395879,
+        "slot": 462371125
+      }
+    }
+  },
+  "testnet": {
+    "programId": "57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34",
+    "gameVersion": "1793167761403",
+    "binarySha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65",
+    "ok": true,
+    "checks": [
+      {
+        "name": "deployed public default bytes match reviewed artifact",
+        "binarySha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65"
+      },
+      {
+        "name": "original first share price and all four payout modes execute"
+      },
+      {
+        "name": "earlier shares accrue rewards from later feeds"
+      },
+      {
+        "name": "slippage",
+        "expectedCustom": 22,
+        "expectedInstructionIndex": 5,
+        "actualError": {
+          "InstructionError": [
+            5,
+            {
+              "Custom": 22
+            }
+          ]
+        },
+        "logs": [
+          "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+          "Program ComputeBudget111111111111111111111111111111 success",
+          "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+          "Program ComputeBudget111111111111111111111111111111 success",
+          "Program 11111111111111111111111111111111 invoke [1]",
+          "Program 11111111111111111111111111111111 success",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 229 of 1299550 compute units",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 201 of 1299321 compute units",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 invoke [1]",
+          "Program log: round time left (s): 104",
+          "Program log: Purchase would receive fewer keys than approved",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 consumed 36738 of 1299120 compute units",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 failed: custom program error: 0x16"
+        ],
+        "unitsConsumed": 37618
+      },
+      {
+        "name": "expired quote",
+        "expectedCustom": 21,
+        "expectedInstructionIndex": 5,
+        "actualError": {
+          "InstructionError": [
+            5,
+            {
+              "Custom": 21
+            }
+          ]
+        },
+        "logs": [
+          "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+          "Program ComputeBudget111111111111111111111111111111 success",
+          "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+          "Program ComputeBudget111111111111111111111111111111 success",
+          "Program 11111111111111111111111111111111 invoke [1]",
+          "Program 11111111111111111111111111111111 success",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 229 of 1299550 compute units",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 201 of 1299321 compute units",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 invoke [1]",
+          "Program log: Purchase quote expired or belongs to another round",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 consumed 20639 of 1299120 compute units",
+          "Program 57SQAWzCikj2SNk55BFjeEUA6Hy39t86c9hV6G234p34 failed: custom program error: 0x15"
+        ],
+        "unitsConsumed": 21519
+      },
+      {
+        "name": "token holder claim is backed by original P3D fees and preserves reserved liabilities"
+      },
+      {
+        "name": "public settlement, rollover and historical jackpot claim execute"
+      }
+    ],
+    "transactions": [
+      {
+        "name": "fund test actors and prepare holder token accounts",
+        "signature": "27x6x66EhQDqb1oRg43ZFb1rYETmgMmNqeHYL4KA96m6rauHNHBR9s6MgeoaQs8KNgo4enWKa4DqjkFedkAKsYLC",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:22.532Z",
+        "blockhash": "F7LP6jV5kWzGsPE7GGfG1dXrs3QkndzBPPCaB9667ZbX",
+        "lastValidBlockHeight": 409060251,
+        "slot": 457601319
+      },
+      {
+        "name": "initialize isolated SOL game and holder vault",
+        "signature": "5bXaQUcvrrVTKvPhbQT3vPYaFrvjfqMsPgsqKjKm4F5xDtnyL8QDdmy5XGjaVECrSq8PDwL166cFKpSojwomMPHv",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:25.182Z",
+        "blockhash": "FKVaeojQzA8kDBEUkEC3zgJkuwgtRcUPuugdp4hsWcV1",
+        "lastValidBlockHeight": 409060263,
+        "slot": 457601331
+      },
+      {
+        "name": "guarded SOL feed in whale mode",
+        "signature": "4o8pwW6FSUGff7Gu8R4ofXSKPPgnx8Mqox7gkLd4EXLf1eARsiVfsMPY6tbo8JH9wiYxL1DZFdCA6PKnnZTQssqY",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:30.241Z",
+        "blockhash": "B3Cn7fNVXu42MCyNvB8FSeHwkdWaTNRYNQerKbi5mxAG",
+        "lastValidBlockHeight": 409060287,
+        "slot": 457601354
+      },
+      {
+        "name": "guarded SOL feed in bear mode",
+        "signature": "2SV4m8vBabWchYmm7HuMGBrFEkE9GsoAw3xHMfRMe7gwsHSzYLYeHorKrYwgo5YCNqTNqXKypkVSDwwnY77dkiVt",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:33.467Z",
+        "blockhash": "4XVKmniiNiL8xWssTYExq7zyg8jGz9YWEUZ7TRaRvTQw",
+        "lastValidBlockHeight": 409060299,
+        "slot": 457601368
+      },
+      {
+        "name": "guarded SOL feed in snek mode",
+        "signature": "3j27A5wXK7ZugGvg9SuniWFBhC5xkZKDdcrCZYMohiH8yop9JYTNdbr6LotVdVzPqKkBQBk9MEkexfgJpPsSptHK",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:36.643Z",
+        "blockhash": "87uQm5quHYe4cDgFd6U1Kv5qp4HJCNE1WpGhDCBP4j5N",
+        "lastValidBlockHeight": 409060313,
+        "slot": 457601383
+      },
+      {
+        "name": "guarded SOL feed in bull mode",
+        "signature": "28hY11DTqv662UrLHRB3epyV6Vd9WFkUKpZHoLrKfRqr1oN6KwYtHzc6LiGg3SfD26oKNY6Heq3Z3Thz1XSoCnc9",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:40.899Z",
+        "blockhash": "5pSRD3VwXudS3bxb9AvKvkaf9ZYD7WhXzCsUpLqsPAYQ",
+        "lastValidBlockHeight": 409060335,
+        "slot": 457601403
+      },
+      {
+        "name": "claim live game rewards as native SOL",
+        "signature": "3SJiWN8ReZvz3mHPTsMuwTgHYQgzjC3HbbCobptQP37cFccact5LkETtsyGzJaxog1vQzbQB1G4c1U56sdd1iT2z",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:56.195Z",
+        "blockhash": "2MPdam37p25sRFaxBmf1yihj8bG1vthDc5m9iqMMULF2",
+        "lastValidBlockHeight": 409060403,
+        "slot": 457601474
+      },
+      {
+        "name": "sweep original P3D fees into funded holder vault",
+        "signature": "54AB2Gq53hayegxiUvXzASfKfLksMTY4bAsHDX49fowqyDgBUz685z2f55FLmQVhSFY4ukZoDTcWrd2Bsk4GQ665",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:09:58.855Z",
+        "blockhash": "HN49SiL8bUmVPVz3F1wU6xy98oMUjUmwxAeNTzEwSncZ",
+        "lastValidBlockHeight": 409060415,
+        "slot": 457601486
+      },
+      {
+        "name": "publish backed holder entitlement root",
+        "signature": "XDDMFN8Pj4yr5Ji8LsciXS86d8mCKDVqusiHAmtjThSsR2qoqd31k9DVCzUBBJuqM38vVe8NhZ9wEwa31PTfuBb",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:10:02.315Z",
+        "blockhash": "G1cRvYJY14Wc8paMvPLwRujPqEUeQRWbV5M3Ghdbcz4U",
+        "lastValidBlockHeight": 409060430,
+        "slot": 457601502
+      },
+      {
+        "name": "claim token holder reward as native SOL",
+        "signature": "ByyajHSYXstapZHQHzGGfF1Eoj6PqrpNW5c1HdZoU8VmPfQiXQhuRX216L3HiFPVU6CHNaxMmz99JnyQivchZFA",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:10:05.372Z",
+        "blockhash": "HtoReiqNo8EBpZU1pAhY9CpbEFAnAThtJiEmMNrsb946",
+        "lastValidBlockHeight": 409060442,
+        "slot": 457601514
+      },
+      {
+        "name": "settle round on real public cluster clock",
+        "signature": "TAj1ZdzpqVU326KQVQivDN9sn2N3hb6TZx43UAnF8PHPVPs1byvN16bwR6AHbQr2zqV5SeKxGS7ZRaH9FuhcH4e",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:11:32.393Z",
+        "blockhash": "BsDZjyCz2bwiSd5YbfvGBHpt3FH8rfMxgQaLUFXoALAH",
+        "lastValidBlockHeight": 409060826,
+        "slot": 457601913
+      },
+      {
+        "name": "roll over into next round",
+        "signature": "2mz8zDs5wschRMPaPNwSWu5W3bmtme3oTVmxLiUXZEk4DJRRNxfgRETTWRLgQKxhBLbtyuRHec8qDTZUzL6GTk82",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:11:34.666Z",
+        "blockhash": "9rRYahVCZ6wfA8P3krpDhFa8844GXxf9MrKZiPN2KSWh",
+        "lastValidBlockHeight": 409060834,
+        "slot": 457601924
+      },
+      {
+        "name": "claim historical jackpot after rollover",
+        "signature": "5XwomZpQHc5jzhp7TqbigSsip3kZJr8Wt2HzSXXYsH7LpVdxwhfGB5iazD3krpvtubE6gU3Jub8E5mEU5Uvc8NNj",
+        "status": "finalized",
+        "submittedAt": "2026-10-28T06:11:37.465Z",
+        "blockhash": "9encZshiXkxHoEsWJZ4YPY51mpNhY13a3xKa5fWFm2vB",
+        "lastValidBlockHeight": 409060846,
+        "slot": 457601938
+      }
+    ]
+  },
+  "preflight": {
+    "launchReady": true,
+    "blockers": []
+  },
+  "accounting": {
+    "ok": true,
+    "approvedBudgetLamports": 20000000,
+    "grossPayerDebitsLamports": 8317361,
+    "netCostAcrossThreeTestWalletsLamports": 4382801,
+    "networkFeesLamports": 60000,
+    "returnedToLaunchLamports": 1947280,
+    "notes": "Net cost includes retained program/account rent and remaining SOL in game pools. Holder funding includes a disclosed 0.002 SOL sponsorship, not organic volume.",
+    "transactions": [
+      {
+        "kind": "guarded-feed",
+        "signature": "66RiUz9iM1swnzZxB4bekHV9g9qBqVYJzV8xU3U8s9NDei4mjxGCR5Th81gTckpFst89AbeX7of8VCZefdthp6MH",
+        "slot": 462370243,
+        "feeLamports": 10000,
+        "familyDeltaLamports": -1918881,
+        "payerDeltaLamports": -1918881
+      },
+      {
+        "kind": "guarded-feed",
+        "signature": "3HFDLZFkcXfMB5MvbJBhe4hkZJQLaZKCGMJ3XJx6JozZvG6Z13tyCZvr6aQG1XWiEnT4quteRbL7b7Vrh7Ke81uY",
+        "slot": 462370419,
+        "feeLamports": 10000,
+        "familyDeltaLamports": -85000,
+        "payerDeltaLamports": -85000
+      },
+      {
+        "kind": "game-claim",
+        "signature": "5Gq5eJsxEJnmQRrzFdjA1FqUENSc69uDKdGhgWesRGNPw4YNihjcEoWEGM5DzSxMMqjJPHRtrHhLN2XcQStxShsT",
+        "slot": 462370467,
+        "feeLamports": 10000,
+        "familyDeltaLamports": 35000,
+        "payerDeltaLamports": 35000
+      },
+      {
+        "kind": "disclosed-test-funding",
+        "signature": "3mLoHFRYBZpP56TV4BZ6wpkf4VNHcr4i6uGUPjBTGjfjppkBCaMWEg1vi9tHi8wyvVfkhNFK82LxiJArxpjX67C",
+        "slot": 462370443,
+        "feeLamports": 5000,
+        "familyDeltaLamports": -2005000,
+        "payerDeltaLamports": -3005000
+      },
+      {
+        "kind": "sweep",
+        "signature": "4E1Jii93Th4znheDNfmpXGRwfoTyzRARdyh5VkwWMxbpy4tuTzzSoKRANc75ytjfRMNMPLwFbzpDCMyDGWZLJyt7",
+        "slot": 462370552,
+        "feeLamports": 5000,
+        "familyDeltaLamports": -5000,
+        "payerDeltaLamports": -5000
+      },
+      {
+        "kind": "publish",
+        "signature": "55TWKanPyyit4Dvx9RWSnLCs8xt7p75wraTs6JLE3hC4yTrEebQ2qm3hWZ1Qr2PCDSUmZXEg73uA2KjNhvkqHsZf",
+        "slot": 462370560,
+        "feeLamports": 5000,
+        "familyDeltaLamports": -1351200,
+        "payerDeltaLamports": -1351200
+      },
+      {
+        "kind": "holder-claim",
+        "signature": "49sPguTC4t3Le9PH1exNpgy6SjRUrfKkE7ZTAQwCSaTr2GcaGz69ZjGngZkvsv69i49DnEAEQML6xBFydJpC7pve",
+        "slot": 462370858,
+        "feeLamports": 10000,
+        "familyDeltaLamports": 952280,
+        "payerDeltaLamports": 952280
+      },
+      {
+        "kind": "return-unused-funding",
+        "signature": "4LDtSFcWHQYJSRyvPyZtg2W82sKUVuxgnduXfHSGjBJ53gKKrMpmwHEcKWt7xWzwxnaZpSiey6SZ8Y9PpCasn85b",
+        "slot": 462371125,
+        "feeLamports": 5000,
+        "familyDeltaLamports": -5000,
+        "payerDeltaLamports": -1952280
+      }
+    ]
+  },
+  "ui": {
+    "productionChecksPassed": 130,
+    "unitTestsPassed": 244
+  },
+  "streamflow": {
+    "recipientAttributionEnabled": true,
+    "existingOpeningSnapshotPreserved": true,
+    "realLockCreatedInTest": false
+  }
+}
