@@ -75,7 +75,7 @@ export function createClaimGuide({ dialog, openDialog, onConnect, formatSol }) {
       else if (publicChain && amount > 0 && !cost) message = costs?.error || 'Checking withdrawal fees and account costs before enabling your claim.';
       else if (amount > 0) message = kind === 'game' ? 'Available now. Claiming withdraws earned rewards, not a refund of everything you paid. Claiming does not end a round or remove your current keys.' : 'Published and funded for this wallet. Claiming SOL does not sell or stake your $PIGGY.';
       else if (kind === 'game') message = player.keys > 0 ? 'No unclaimed SOL yet. Your keys can earn a cut when another feed arrives.' : player.totalClaimed > 0 ? 'All game rewards earned so far have been claimed. New earned rewards will appear here.' : 'No game rewards for this wallet yet. Feed Piggy to receive keys.';
-      else message = player.tokenBalance > 0 ? 'No published, unclaimed holder reward for this wallet. Keep your tokens in your wallet; no staking is needed.' : 'No unclaimed holder reward for this wallet. Only eligible balances included in funded snapshots receive an allocation.';
+      else message = player.tokenBalance > 0 ? 'No published, unclaimed holder reward for this wallet. New funded allocations appear here; no staking is needed.' : 'No unclaimed holder reward for this wallet. Only eligible balances included in funded snapshots receive an allocation.';
       text(`#claim-${kind}-status`, message);
       panels[kind].setAttribute('aria-busy', String(busy && isClaim && pendingKind === kind));
       const button = find(kind === 'game' ? '#claim-button' : '#claim-token-button');

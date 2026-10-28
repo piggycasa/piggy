@@ -49,8 +49,9 @@ export function validatePublicConfig(source, { origin = 'https://piggy.invalid' 
   const priorityFeeMicroLamports = source.priorityFeeMicroLamports ?? 0;
   if (!Number.isSafeInteger(priorityFeeMicroLamports) || priorityFeeMicroLamports < 0 || priorityFeeMicroLamports > 1_000_000) throw new TypeError('Priority fee must be 0–1,000,000 micro-lamports per compute unit.');
   if (source.cluster === 'mainnet-beta' && source.mainnetEnabled !== true) throw new TypeError('Mainnet actions are not enabled in this deployment configuration.');
+  if (source.streamflowLocks !== undefined && typeof source.streamflowLocks !== 'boolean') throw new TypeError('Streamflow lock eligibility must be an explicit boolean.');
   return Object.freeze({schemaVersion:1,cluster:source.cluster,genesisHash:source.genesisHash,programId,piggyMint,gameVersion:String(source.gameVersion),purchaseGuardVersion:1,
-    rpcUrl:url(source.rpcUrl,'RPC',origin),proofIndexUrl:url(source.proofIndexUrl,'Holder proof index',origin),priorityFeeMicroLamports,mainnetEnabled:source.mainnetEnabled===true});
+    rpcUrl:url(source.rpcUrl,'RPC',origin),proofIndexUrl:url(source.proofIndexUrl,'Holder proof index',origin),priorityFeeMicroLamports,mainnetEnabled:source.mainnetEnabled===true,streamflowLocks:source.streamflowLocks===true});
 }
 /** Hosted builds fail closed. Only loopback hosts may use the fixture signer. */
 export function selectClientMode(location, env = {}) {

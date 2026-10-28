@@ -11,6 +11,7 @@ import { publicationDomain, assertPublicationDomain, eligibleOpeningSnapshot, ma
 import { CLUSTER_GENESIS,isPrivateHost } from '../src/solana-config.mjs';
 import { requireMainnetAuthorities,validateMainnetGameConfiguration } from './publicnet-validation.mjs';
 import { verifyOperatorProgram } from './program-release.mjs';
+import { snapshotWithStreamflowLocks } from './streamflow-holder.mjs';
 
 const COMMITMENT='finalized';
 export async function durableJson(filename,value,{mode=0o600}={}) {
@@ -38,6 +39,7 @@ export async function loadPublisher(configFile,{allowLocal=false}={}) {
   if(workspace===proofOutput||workspace.startsWith(proofOutput+path.sep)||proofOutput.startsWith(workspace+path.sep))throw new Error('Private publisher state and public proofs must use separate directories.');
   if(signerFile===proofOutput||signerFile.startsWith(proofOutput+path.sep)||proofOutput===path.parse(proofOutput).root)throw new Error('Publisher signing keys cannot be stored beneath the public proof directory.');
   const minimum=BigInt(raw.minPublishLamports??10_000_000);
+  if(raw.streamflowLocks!==undefined&&typeof raw.streamflowLocks!=='boolean')throw new Error('streamflowLocks must be an explicit boolean.');
   if(minimum<1n||minimum>(1n<<64n)-1n)throw new Error('Invalid publication funding threshold.');
   const config={...raw,localTest:local,rpcUrl:rpc.href,workspace,proofOutput,minPublishLamports:minimum.toString(),publisherKeypair:signerFile,
     priorityFeeMicroLamports:raw.priorityFeeMicroLamports??0,epochSeconds:raw.epochSeconds??3600};
@@ -79,7 +81,9 @@ async function state(ctx) {
   return stored;
 }
 async function capture(ctx) {
-  const snapshot=await snapshotMintBalances(ctx.connection,ctx.domain.piggyMint,{commitment:COMMITMENT,minContextSlot:ctx.minContextSlot});
+  const snapshot=ctx.config.streamflowLocks
+    ?await snapshotWithStreamflowLocks(ctx.connection,ctx.domain.piggyMint,{cluster:ctx.domain.cluster,commitment:COMMITMENT,minContextSlot:ctx.minContextSlot})
+    :await snapshotMintBalances(ctx.connection,ctx.domain.piggyMint,{commitment:COMMITMENT,minContextSlot:ctx.minContextSlot});
   return eligibleOpeningSnapshot(snapshot,{excludeOffCurve:true,excludedWallets:ctx.config.excludedWallets??[]});
 }
 async function rounds(ctx,game) {

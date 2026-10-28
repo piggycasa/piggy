@@ -16,7 +16,7 @@ export function holderMerkleTree(records,domain){
   return{root:levels.at(-1)[0],records:records.map((record,index)=>{const proof=[];let cursor=index;for(const level of levels.slice(0,-1)){const sibling=cursor^1;if(sibling<level.length)proof.push(level[sibling]);cursor=Math.floor(cursor/2);}return{...record,leaf:leaves[index],proof};})};
 }
 export function verifyHolderProof(record,domain,root){let hash=holderLeaf({...domain,...record});for(const sibling of record.proof)hash=holderParent(hash,sibling);return Buffer.from(hash).equals(Buffer.from(root));}
-export async function snapshotMintBalances(connection,mint,{commitment='confirmed',minContextSlot}={}){
+export async function snapshotMintBalances(connection,mint,{commitment='confirmed',minContextSlot,includeAccounts=false}={}){
   const mintKey=pk(mint),mintAccount=await connection.getAccountInfo(mintKey,{commitment,...(minContextSlot===undefined?{}:{minContextSlot})});
   if(!mintAccount||![TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID].some(program=>mintAccount.owner.equals(program)))throw new Error('Holder eligibility requires an initialized SPL or Token-2022 mint.');
   const tokenProgram=mintAccount.owner,mintInfo=unpackMint(mintKey,mintAccount,tokenProgram);
@@ -25,15 +25,16 @@ export async function snapshotMintBalances(connection,mint,{commitment='confirme
   const filters=[...(tokenProgram.equals(TOKEN_PROGRAM_ID)?[{dataSize:165}]:[]),{memcmp:{offset:0,bytes:mintKey.toBase58()}}];
   const result=await connection.getProgramAccounts(tokenProgram,{commitment,withContext:true,...(minContextSlot===undefined?{}:{minContextSlot}),filters});
   if(!Number.isSafeInteger(result.context?.slot)||result.context.slot<0||minContextSlot!==undefined&&result.context.slot<minContextSlot)throw new Error('Holder snapshot RPC returned an invalid context slot.');
-  const balances=new Map(),seen=new Set();for(const{pubkey,account}of result.value){
+  const balances=new Map(),seen=new Set(),tokenAccounts=[];for(const{pubkey,account}of result.value){
     const address=pk(pubkey).toBase58();if(seen.has(address))throw new Error('Holder snapshot RPC returned a duplicate token account.');seen.add(address);
     const decoded=unpackAccount(pk(pubkey),account,tokenProgram);
     if(!decoded.mint.equals(mintKey)||account.data[108]>2)throw new Error('Holder snapshot RPC returned an invalid token account.');
     if(!decoded.isInitialized)continue;const owner=decoded.owner.toBase58(),amount=decoded.amount;if(amount>0n)balances.set(owner,(balances.get(owner)||0n)+amount);
+    if(includeAccounts)tokenAccounts.push({address,owner,amount,mint:decoded.mint.toBase58(),delegate:decoded.delegate?.toBase58()??null,closeAuthority:decoded.closeAuthority?.toBase58()??null});
   }
   const totalBalance=[...balances.values()].reduce((a,b)=>a+b,0n);
   if(totalBalance>mintInfo.supply)throw new Error('Holder snapshot balances exceed mint supply.');
-  return{slot:result.context.slot,mint:mintKey.toBase58(),tokenProgram:tokenProgram.toBase58(),decimals:mintInfo.decimals,supply:mintInfo.supply,balances,totalBalance};
+  return{slot:result.context.slot,mint:mintKey.toBase58(),tokenProgram:tokenProgram.toBase58(),decimals:mintInfo.decimals,supply:mintInfo.supply,balances,totalBalance,...(includeAccounts?{tokenAccounts}:{})};
 }
 export function apportionHolderRewards(balances,totalAmount){
   const total=BigInt(totalAmount),denominator=[...balances.values()].reduce((a,b)=>a+BigInt(b),0n);if(total<=0n||denominator===0n)throw new Error('Positive funded rewards and holder balances are required.');

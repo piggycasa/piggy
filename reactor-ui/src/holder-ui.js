@@ -162,7 +162,7 @@ function renderLoot() {
   $('#loot-claim').setAttribute('aria-label', visibility.walletKnown?`View and claim ${money(you.claimable)} game SOL`:'Connect your wallet to see game rewards');
   const holderStatus=$('#holder-short-status');
   const holderMoney=$('.holder-money');if(holderMoney)holderMoney.dataset.empty=String(visibility.holderKnown&&you.tokenClaimable===0);
-  if(holderStatus)holderStatus.textContent=!connected?'Connect to see your rewards':!visibility.walletKnown?'Reading rewards…':!visibility.holderKnown?'Rewards unavailable':you.tokenClaimable>0?'Ready to claim':you.tokenBalance>0?'No new rewards yet':'Hold $PIGGY to earn';
+  if(holderStatus)holderStatus.textContent=!connected?'Connect to see your rewards':!visibility.walletKnown?'Reading rewards…':!visibility.holderKnown?'Rewards unavailable':you.tokenClaimable>0?'Ready to claim':you.tokenBalance>0||chainClient?.config?.streamflowLocks?'No new rewards yet':'Hold $PIGGY to earn';
   arenaAmount('#holder-earn-amount',visibility.holderKnown?you.tokenClaimable:null,{unit:true,unknown:!connected?'Connect wallet':visibility.walletKnown?'Unavailable':'Updating…'});
   const holderClaim=$('.holder-claim');if(holderClaim){const label=visibility.holderKnown&&you.tokenClaimable>0?'Claim SOL':'View rewards';const text=[...holderClaim.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);if(text)text.textContent=label;holderClaim.setAttribute('aria-label',label+' from holding $PIGGY');}
   let reason;
@@ -976,6 +976,8 @@ async function initializePublicWallet() {
   renderPublicWallet();
   try {
     const config=await loadPublicConfig(clientMode.configUrl,{origin:location.origin});
+    $('#streamflow-rewards-note').hidden=!config.streamflowLocks;
+    $('#claim-panel-holder > .claim-panel-intro:not(#streamflow-rewards-note)').hidden=config.streamflowLocks;
     const{createPublicGameClient}=await import('./solana-public-client.mjs');
     chainClient=createPublicGameClient(config,{onWalletChange:()=>{chainHasState=false;chainReady=false;claimResult=null;claimProgress=null;lastFeedEvent=null;lootMessageOverride='';feedback.clear();clearLootPayment();state=createGame(Date.now(),{seeded:false});for(const player of Object.values(state.players)){player.balance=0;player.tokenBalance=0;}state.round.status='connecting';state.round.id=0;lastDisplayedLoot=null;$('#last-transaction').textContent='—';renderAll();refreshChain();},onTransaction:presentPublicTransaction});
     chainClient.subscribeWallets?.(() => refreshWalletChoices());

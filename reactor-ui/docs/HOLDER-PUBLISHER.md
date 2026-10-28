@@ -14,6 +14,8 @@ The operator records a finalized opening snapshot S0 before the game exists. Tha
 
 Balances are aggregated by wallet across all initialized accounts of the actual mint, using its legacy SPL or Token-2022 program. Raw token units determine proportional allocations with deterministic largest-remainder rounding. The current policy includes on-curve wallet owners; off-curve owners such as bonding curves, pools and vault PDAs cannot directly sign claims and are excluded. Explicit exclusions must be disclosed before the first snapshot. The staged policy has no additional excluded wallets. This does not support a custody platform claiming on behalf of its users.
 
+The fresh-game publisher also supports verified Streamflow v4 lock and vesting balances when `streamflowLocks: true`. Those balances are attributed to the current on-curve **recipient**, rather than to the escrow PDA or sender. Withdrawn tokens and protocol fees are excluded from the locked amount; liquid and locked balances are counted once. This is an explicit Streamflow integration, not blanket support for arbitrary custody platforms. Historical snapshots are preserved. See [Streamflow recipient rewards](STREAMFLOW-REWARDS.md).
+
 The publisher is trusted to report historical balances and allocation fairly. The program verifies funded budgets, authorized roots and wallet proofs, but cannot independently verify old RPC balance data. The UI verifies root metadata and claim receipts against the chain. This is a trusted snapshot distributor, not a trustless historical-balance oracle.
 
 ## Activate a new deployment
@@ -61,12 +63,12 @@ The fresh-launch client targets game version `1793155991891`, PDA `GXX38mLVdj2i2
 
 Version `1793081200001` is the pre-launch instance. Preserve its journals, snapshots, epochs and `/proofs/index.json` export so [existing game and token-holder rewards remain claimable](https://piggy.casa/test-claims/). The legacy keeper supports `settleOnly: true` and `settleOnlyRoundId: "3"`: it pins that round under its lock, waits for the finalized deadline, settles using the existing spending and release guards, then remains terminal without starting another round. Configuration and code support do not by themselves establish that a server cutover has completed.
 
-
 ## Pre-launch Mainnet services record
+
 
 As of 27 October 2026, the Mainnet token, game and holder vault exist. The game uses version `1793081200001`, program `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK` and mint `BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`. S0 was captured at finalized slot `462231588`, with game absence proven at slot `462231590`, before game creation. The first snapshot contains an actual external holder; no operator token purchase was made to create eligibility.
 
-The three current roles run in one supervised Railway service:
+At the recorded pre-launch cutover, these three roles ran in one supervised Railway service:
 
 | Role | Function |
 | --- | --- |
@@ -74,7 +76,7 @@ The three current roles run in one supervised Railway service:
 | `publisher` | Snapshot holders, sweep earned game fees, publish funded epochs and export proofs. |
 | `proofSync` | Check exports every 30 seconds and upload changed proofs to the authenticated hosting endpoint. |
 
-The active runtime is Railway service `353ecafb-2040-40f3-883d-6a84e6ce85c2` (`piggy-operators-v2`), with persistent data at `/data/piggy` and code in the reviewed container image. It runs one replica in SFO (`us-west2`). A kernel file lock prevents a second supervisor from using the same volume. See [OPERATORS-SERVER.md](OPERATORS-SERVER.md) for deployment identity, activation gates and migration receipts.
+The recorded pre-launch runtime is Railway service `353ecafb-2040-40f3-883d-6a84e6ce85c2` (`piggy-operators-v2`), with persistent data at `/data/piggy` and code in the reviewed container image. It runs one replica in SFO (`us-west2`). A kernel file lock prevents a second supervisor from using the same volume. See [OPERATORS-SERVER.md](OPERATORS-SERVER.md) for deployment identity, activation gates and migration receipts.
 
 Under `/data/piggy`, `configs/` and `keys/` are private, `publisher-state/` and `keeper-state/` contain the authoritative durable journals, and `public/proofs/` contains the public export. The upload token and `proof-upload-config.json` remain private files outside that export. Only the keeper and holder-publisher signing keys were migrated. The original checkout and stopped Mac runtime are historical evidence, not the current journals. Preserve the server's latest journals and their opening snapshots during backup or migration.
 

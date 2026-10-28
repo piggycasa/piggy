@@ -5,6 +5,8 @@ import { apportionHolderRewards, holderMerkleTree, bytesToHex, verifyHolderProof
 import { gameAddress, pk } from './solana-instructions.mjs';
 
 export const ELIGIBILITY_POLICY = 'opening-snapshot-on-curve-owners-v1';
+export const STREAMFLOW_ELIGIBILITY_POLICY = 'opening-snapshot-streamflow-recipients-v2';
+export const SUPPORTED_ELIGIBILITY_POLICIES = [ELIGIBILITY_POLICY, STREAMFLOW_ELIGIBILITY_POLICY];
 // Two-signature WSOL claims fit legacy1232-byte packets through depth16,
 // including the configured priority fee. Never reserve an unclaimable root.
 export const MAX_HOLDER_LEAVES = 65_536;
@@ -25,13 +27,31 @@ export function eligibleOpeningSnapshot(snapshot,{excludedWallets=[],excludeOffC
   }
   balances.sort(([a],[b])=>Buffer.compare(pk(a).toBuffer(),pk(b).toBuffer()));
   if(!balances.length)throw new Error('No claim-capable eligible holders exist.');
-  return {policy:ELIGIBILITY_POLICY,slot:snapshot.slot,mint:pk(snapshot.mint).toBase58(),tokenProgram:snapshot.tokenProgram,decimals:snapshot.decimals,
-    excludedWallets:[...excluded].sort(),excludedBalance:excludedBalance.toString(),balances,totalEligibleBalance:balances.reduce((sum,[,amount])=>sum+BigInt(amount),0n).toString()};
+  const streamflowLocks=snapshot.streamflowLocks?{...snapshot.streamflowLocks,assignments:snapshot.streamflowLocks.assignments.filter(a=>!excluded.has(a.wallet))}:null;
+  const result={policy:streamflowLocks?STREAMFLOW_ELIGIBILITY_POLICY:ELIGIBILITY_POLICY,slot:snapshot.slot,mint:pk(snapshot.mint).toBase58(),tokenProgram:snapshot.tokenProgram,decimals:snapshot.decimals,
+    excludedWallets:[...excluded].sort(),excludedBalance:excludedBalance.toString(),balances,totalEligibleBalance:balances.reduce((sum,[,amount])=>sum+BigInt(amount),0n).toString(),...(streamflowLocks?{streamflowLocks}:{})};
+  validateStreamflowEvidence(result);
+  return result;
+}
+function validateStreamflowEvidence(snapshot){
+  if(snapshot.policy===ELIGIBILITY_POLICY){if(snapshot.streamflowLocks)throw new Error('Legacy snapshots cannot contain Streamflow attribution.');return;}
+  const evidence=snapshot.streamflowLocks;
+  if(snapshot.policy!==STREAMFLOW_ELIGIBILITY_POLICY||evidence?.version!==1||!['strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m','HqDGZjaVRXJ9MGRQEw7qDc2rAr6iH1n1kAQdCZaCMfMZ'].includes(evidence.programId)||!Array.isArray(evidence.assignments)||!Number.isSafeInteger(evidence.beforeSlot)||evidence.beforeSlot<0||!Number.isSafeInteger(evidence.afterSlot)||evidence.beforeSlot>snapshot.slot||evidence.afterSlot<snapshot.slot)throw new Error('Invalid Streamflow snapshot evidence.');
+  const seen=new Set(),attributed=new Map(),balances=new Map(snapshot.balances);
+  for(const a of evidence.assignments){
+    const escrow=PublicKey.findProgramAddressSync([Buffer.from('strm'),pk(a.metadata).toBuffer()],pk(evidence.programId))[0].toBase58();
+    if(a.escrow!==escrow||seen.has(escrow)||a.wallet!==a.recipient||!PublicKey.isOnCurve(pk(a.wallet).toBytes())||!/^[a-f0-9]{64}$/.test(a.metadataSha256))throw new Error('Invalid Streamflow recipient lock attribution.');
+    const amount=positive(a.amount,'locked balance'),deposited=positive(a.deposited,'lock deposit'),withdrawn=BigInt(a.withdrawn),fees=BigInt(a.unpaidFees);
+    if(withdrawn<0n||fees<0n||deposited-withdrawn!==amount||BigInt(a.escrowBalance)<amount+fees)throw new Error('Unbacked Streamflow recipient lock attribution.');
+    seen.add(escrow);attributed.set(a.wallet,(attributed.get(a.wallet)??0n)+amount);
+  }
+  for(const [wallet,amount]of attributed)if(!balances.has(wallet)||BigInt(balances.get(wallet))<amount)throw new Error('Streamflow attribution exceeds eligible wallet balance.');
 }
 export function makePublicationPlan({domain,epoch,totalAmount,openingSnapshot,nextOpeningSnapshot}) {
   const number=positive(epoch,'epoch'),total=positive(totalAmount,'epoch amount');
   for(const snapshot of [openingSnapshot,nextOpeningSnapshot]){
-    if(snapshot.policy!==ELIGIBILITY_POLICY||snapshot.mint!==domain.piggyMint||!Number.isSafeInteger(snapshot.slot)||snapshot.slot<0)throw new Error('Snapshot does not match holder policy/mint.');
+    if(!SUPPORTED_ELIGIBILITY_POLICIES.includes(snapshot.policy)||snapshot.mint!==domain.piggyMint||!Number.isSafeInteger(snapshot.slot)||snapshot.slot<0)throw new Error('Snapshot does not match holder policy/mint.');
+    validateStreamflowEvidence(snapshot);
     const seen=new Set(),excluded=new Set(snapshot.excludedWallets??[]);let sum=0n;
     for(const [wallet,amount] of snapshot.balances){if(seen.has(wallet)||!PublicKey.isOnCurve(pk(wallet).toBytes())||excluded.has(wallet))throw new Error('Invalid or duplicate eligible owner.');seen.add(wallet);sum+=positive(amount,'snapshot balance');}
     if(!sum||sum!==BigInt(snapshot.totalEligibleBalance))throw new Error('Snapshot total does not match eligible balances.');
@@ -72,10 +92,10 @@ export function proofDocuments(plans,domain) {
   for(const plan of plans){
     if(plan.status!=='published')continue;validatePublicationPlan(plan,domain);
     if(seen.has(plan.epoch))throw new Error('Duplicate published holder epoch.');seen.add(plan.epoch);
-    epochs.push({epoch:plan.epoch,root:plan.root,snapshotSlot:plan.snapshotSlot,totalAmount:plan.totalAmount,signature:plan.signature??null});
+    epochs.push({epoch:plan.epoch,root:plan.root,snapshotSlot:plan.snapshotSlot,totalAmount:plan.totalAmount,signature:plan.signature??null,...(plan.openingSnapshot.policy===STREAMFLOW_ELIGIBILITY_POLICY?{eligibilityPolicy:plan.openingSnapshot.policy}:{})});
     for(const row of plan.records){if(!wallets.has(row.wallet))wallets.set(row.wallet,{...domain,wallet:row.wallet,epochs:[]});wallets.get(row.wallet).epochs.push({epoch:plan.epoch,amount:row.amount,proof:row.proof});}
   }
   epochs.sort((a,b)=>BigInt(a.epoch)<BigInt(b.epoch)?-1:1);
   for(const wallet of wallets.values())wallet.epochs.sort((a,b)=>BigInt(a.epoch)<BigInt(b.epoch)?-1:1);
-  return {index:{...domain,eligibilityPolicy:ELIGIBILITY_POLICY,epochs},wallets};
+  return {index:{...domain,eligibilityPolicy:epochs.at(-1)?.eligibilityPolicy??ELIGIBILITY_POLICY,epochs},wallets};
 }

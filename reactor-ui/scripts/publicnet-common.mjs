@@ -38,7 +38,19 @@ export function assertTestCluster(cluster) {
   if (!['devnet', 'testnet'].includes(cluster)) throw new Error('This harness cannot generate identities, request airdrops, deploy, or send on mainnet. Use the reviewed launch procedure.');
 }
 export function rpcConnection(url) {
-  return new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true, confirmTransactionInitialTimeout: 45_000, fetch: (resource, init = {}) => fetch(resource, { ...init, signal: AbortSignal.timeout(20_000) }) });
+  return new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true, confirmTransactionInitialTimeout: 45_000, fetch: publicRpcFetch });
+}
+/** Only retry reads. A transaction submission always retains its original journal outcome. */
+export async function publicRpcFetch(resource, init = {}, { transport = fetch, wait = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
+  let request;try { request=JSON.parse(init.body); } catch { /* non-JSON requests are not retried */ }
+  const readOnly=request&&!Array.isArray(request)&&typeof request.method==='string'&&(request.method.startsWith('get')||request.method==='simulateTransaction');
+  for(let attempt=0;;attempt++){
+    const response=await transport(resource,{...init,signal:init.signal??AbortSignal.timeout(20_000)});
+    if(response.status!==429||!readOnly||attempt>=3)return response;
+    await response.body?.cancel();
+    const seconds=Number(response.headers.get('retry-after'));
+    await wait(Number.isFinite(seconds)&&seconds>0?Math.min(seconds*1000,10_000):1000*2**attempt);
+  }
 }
 export async function rpc(url, method, params = [], timeout = 20_000) {
   const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }), signal: AbortSignal.timeout(timeout) });

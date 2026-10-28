@@ -1,7 +1,7 @@
 /** Pure release checks shared by operator tooling and their regression tests. */
 import { PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from '@solana/spl-token';
-import { assertPublicationDomain, ELIGIBILITY_POLICY } from '../src/holder-publication.mjs';
+import { assertPublicationDomain, SUPPORTED_ELIGIBILITY_POLICIES } from '../src/holder-publication.mjs';
 
 export function validatePublishedEpochIndex(entries, nextEpoch) {
   const next = BigInt(nextEpoch);
@@ -49,6 +49,6 @@ export function requireActivatedGame(game) {
 export function validatePreparedOpeningJournal(journal, domain) {
   assertPublicationDomain(journal, domain);
   const snapshot = journal.openingSnapshot;
-  if (journal.activation !== 'prepared-before-game' || !snapshot || snapshot.policy !== ELIGIBILITY_POLICY || snapshot.mint !== domain.piggyMint || !Number.isSafeInteger(snapshot.slot) || snapshot.slot < 0 || !Number.isSafeInteger(journal.preGameAbsenceSlot) || journal.preGameAbsenceSlot < snapshot.slot || !Array.isArray(journal.plans) || journal.plans.length || journal.pendingWindow !== null) throw new Error('Publisher journal does not contain the matching finalized pre-creation S0 and game-absence proof.');
+  if (journal.activation !== 'prepared-before-game' || !snapshot || !SUPPORTED_ELIGIBILITY_POLICIES.includes(snapshot.policy) || snapshot.mint !== domain.piggyMint || !Number.isSafeInteger(snapshot.slot) || snapshot.slot < 0 || !Number.isSafeInteger(journal.preGameAbsenceSlot) || journal.preGameAbsenceSlot < snapshot.slot || !Array.isArray(journal.plans) || journal.plans.length || journal.pendingWindow !== null) throw new Error('Publisher journal does not contain the matching finalized pre-creation S0 and game-absence proof.');
   return { snapshotSlot: snapshot.slot, preGameAbsenceSlot: journal.preGameAbsenceSlot, activation: journal.activation };
 }
