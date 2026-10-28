@@ -1,5 +1,20 @@
 # PIGGY — Feed Piggy. Take the crown.
 
+## Current interface — 28 October 2026
+
+The shipped visual direction is a saturated game arena: ultraviolet `#4325F5`, hot pink `#FF4D91`, acid yellow `#F7FF4A`, white `#F8F9FF`, deep violet `#21105F`, and a darker control field `#3214BD`. These are deliberate variations on the licensed Konterball base. Cream dashboard panels and muted rose materials are retired.
+
+Archivo Black carries the jackpot, timer and prize headings. Jost carries readable body copy and controls. The clear pig has white/cyan/pink studio highlights and saturated gold coins. Desktop scores overlay the wider prize stage so the pig uses more vertical space. Portrait and short landscape layouts keep their explicit viewport grids, without page scrolling.
+
+USD estimates lead; compact SOL equivalents remain visible, and exact lamports and wallet costs are available in Details. Game-key rewards and token-holder rewards stay separate. Confirmed feeds trigger coin drops, a finite impact ring and a reward tick; earned SOL flies toward the visible reward control. Sound is opt-in from the header. Reduced motion keeps state feedback without travel effects.
+
+The source, current mainnet program addresses, release hash and verification steps remain available through Verify. No rules, pricing curve, transaction builder or payout allocation was changed by this visual revision.
+
+## Earlier adaptation notes
+
+The historical notes below record the original port and subsequent design decisions; the palette, typography and layout above supersede their earlier visual descriptions.
+
+
 PIGGY makes the pig the game: feed SOL, grow your cut, take the crown and compete for the pot at zero. The pig silhouette is the brand mark, derived from the same attributed mesh as the central prize bank. KONTERBALL supplies the adapted interface source. The upstream checkout is `research/konterball-upstream` at commit `1b1a54aec27f36c4337f4206eb35938f530e847a`. The source is MIT licensed; the original notice and project attribution are retained with the other asset credits.
 
 `src/konterball-ui.css` maps the original source styling to the PIGGY controls. Its header comment records the individual source files. Exact purple #2f2475, pink #ffa3b0, yellow #f9fc56 and white come from `src/stylesheets/base/_vars.scss`. The 2px white rectangular buttons, uppercase labels, .08em tracking and transparent backgrounds adapt `.btn` in `base/_layout.scss`. The flat corner actions follow the original About and mute controls. The full viewport field, centered world and bottom action positions adapt `screens/_choose-mode-screen.scss`. Large white score typography follows the room-code and in-world score treatments. Information screens adapt the original full-viewport About screen: a flat purple field, centered content with internal overflow only when needed, and the source back-arrow control in the upper-left corner. They are native dialogs for focus handling, but are not bordered popup cards.

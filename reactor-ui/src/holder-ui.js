@@ -174,8 +174,9 @@ function showLootPayment(amount, label = 'Key rewards') {
   clearTimeout(lootPulseTimeout);
   lootPulseTimeout = setTimeout(() => { panel.classList.remove('is-paid'); $('#key-loot-pop').classList.remove('is-visible'); }, 4_000);
   if (reducedMotion) return;
-  const bank = $('#safe-art').getBoundingClientRect(), destination = $('.loot-amount').getBoundingClientRect();
-  const flight = element('span', 'loot-flight', `+${money(amount)} SOL`);
+  const bank = $('#safe-art').getBoundingClientRect(), lootDestination = $('.loot-amount').getBoundingClientRect();
+  const destination = lootDestination.width && lootDestination.height ? lootDestination : $('.rewards-button').getBoundingClientRect();
+  const flight = element('span', 'loot-flight', `+${compactMoney(amount)} SOL`);
   flight.setAttribute('aria-hidden', 'true'); flight.title = label;
   const x = bank.left + bank.width * .5, y = bank.top + bank.height * .62;
   const dx = destination.left + destination.width * .5 - x, dy = destination.top + destination.height * .5 - y;
@@ -653,6 +654,7 @@ soundButton.setAttribute('aria-label', 'Enable sound'); soundButton.setAttribute
 soundButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path d="m17 9 5 6m0-6-5 6"/></svg>';
 const soundHolder = element('div'); soundHolder.style.cssText = 'display:flex;align-items:center;gap:9px';
 $('#round-badge').parentElement.before(soundHolder); soundHolder.append(soundButton, $('#round-badge').parentElement);
+$('.topbar nav').prepend(soundButton);
 soundButton.addEventListener('click', () => {
   soundEnabled = !soundEnabled; soundButton.setAttribute('aria-pressed', String(soundEnabled)); soundButton.setAttribute('aria-label', soundEnabled ? 'Mute sound' : 'Enable sound');
   soundButton.innerHTML = soundEnabled ? '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path d="M17 8c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path d="m17 9 5 6m0-6-5 6"/></svg>';

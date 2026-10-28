@@ -24,12 +24,12 @@ export function createVault(container) {
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none';
   container.prepend(canvas);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2));
-  const backdrop = new THREE.Color(0x190f28);
+  const backdrop = new THREE.Color(0x4325f5);
   renderer.setClearColor(backdrop, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   // A flat scene Color is a framebuffer clear, so Three never tone-maps it.
   // Use the same linear-to-sRGB pipeline for the clear and refracted background;
-  // otherwise the refracted backdrop no longer matches the surrounding ink.
+  // otherwise the refracted backdrop no longer matches the surrounding field.
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.toneMappingExposure = 1;
   const scene = new THREE.Scene(); scene.background = backdrop;
@@ -52,9 +52,9 @@ export function createVault(container) {
   const frameGeometries = [];
   const dummy = new THREE.Object3D(), offset = new THREE.Matrix4();
 
-  // The dark studio leaves clear glass clear. Deliberate softboxes describe the
-  // curves instead of filling the whole shell with a grey reflection.
-  const studio = new THREE.Scene(); studio.background = new THREE.Color(0x100b18);
+  // A neutral studio and white/cyan/pink rims describe the clear shell against
+  // the saturated arcade field without turning it into an opaque pink object.
+  const studio = new THREE.Scene(); studio.background = new THREE.Color(0x141044);
   const panels = new THREE.Group(); studio.add(panels);
   const panelGeometry = track(new THREE.PlaneGeometry(1, 1));
   function lightformer(intensity, position, scale, color = 0xffffff) {
@@ -62,14 +62,14 @@ export function createVault(container) {
     const panel = new THREE.Mesh(panelGeometry, mat);
     panel.position.set(...position); panel.scale.set(...scale); panel.lookAt(0, 1.8, 0); panels.add(panel);
   }
-  lightformer(3, [-3.7, 4.8, 4], [2.5, 4.2, 1], 0xfff2e5);
-  lightformer(3, [4, 3.1, -2.8], [1.25, 4.6, 1], 0xc7d3ff);
-  lightformer(.85, [0, 7, 0], [3.5, 2, 1], 0xffe3ec);
-  lightformer(1.5, [-3.5, 2.5, -4], [2.2, 4.8, 1], 0xff8fae);
-  lightformer(.75, [1.4, 2.8, 4.2], [.6, 4, 1], 0xff8fae);
-  lightformer(2.2, [0, 3, -6], [5, 4, 1], 0xfff2e5);
-  lightformer(.7, [0, 1.8, 6], [4.5, 3.2, 1], 0xfff2e5);
-  lightformer(1.1, [-1.8, 6.2, 3.8], [.4, 3.2, 1], 0xfff2e5);
+  lightformer(4.2, [-3.7, 4.8, 4], [2.5, 4.2, 1], 0xf8f9ff);
+  lightformer(4.5, [4, 3.1, -2.8], [1.25, 4.6, 1], 0x8ffaff);
+  lightformer(.85, [0, 7, 0], [3.5, 2, 1], 0xede5ff);
+  lightformer(3, [-3.5, 2.5, -4], [2.2, 4.8, 1], 0xff4d91);
+  lightformer(1.6, [1.4, 2.8, 4.2], [.6, 4, 1], 0xff4d91);
+  lightformer(2.2, [0, 3, -6], [5, 4, 1], 0xf8f9ff);
+  lightformer(.7, [0, 1.8, 6], [4.5, 3.2, 1], 0xf8f9ff);
+  lightformer(1.1, [-1.8, 6.2, 3.8], [.4, 3.2, 1], 0xf8f9ff);
   function captureEnvironment() {
     if (disposed) return;
     const generator = new THREE.PMREMGenerator(renderer);
@@ -86,20 +86,20 @@ export function createVault(container) {
     generator.dispose();
   }
   captureEnvironment();
-  scene.add(new THREE.AmbientLight(0xfff2e5, .24));
-  const fill = new THREE.DirectionalLight(0xfff2e5, 2.2); fill.position.set(0, 2.4, 6); scene.add(fill);
-  const key = new THREE.DirectionalLight(0xfff2e5, 1.4); key.position.set(-3, 5, 4); scene.add(key);
+  scene.add(new THREE.AmbientLight(0xf8f9ff, .24));
+  const fill = new THREE.DirectionalLight(0xf8f9ff, 1.6); fill.position.set(0, 2.4, 6); scene.add(fill);
+  const key = new THREE.DirectionalLight(0xf8f9ff, 1.4); key.position.set(-3, 5, 4); scene.add(key);
   const rim = new THREE.DirectionalLight(0xc7d3ff, .65); rim.position.set(4, 3, -4); scene.add(rim);
   const exhibitTarget = new THREE.Object3D(); exhibitTarget.position.set(0, 1.2, 0); scene.add(exhibitTarget);
-  const exhibitSpot = new THREE.SpotLight(0xfff2e5, 18, 16, Math.PI / 7, .9, 2);
+  const exhibitSpot = new THREE.SpotLight(0xf8f9ff, 18, 16, Math.PI / 7, .9, 2);
   exhibitSpot.position.set(-1.8, 7.8, 4.5); exhibitSpot.target = exhibitTarget; scene.add(exhibitSpot);
   const poolGeometry = track(new THREE.PlaneGeometry(6.5, 6.5));
   const poolMaterial = track(new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
-    uniforms: { lightColor: { value: new THREE.Color(0x08040f) } },
+    uniforms: { lightColor: { value: new THREE.Color(0x220e9c) } },
     vertexShader: 'varying vec2 poolUV; void main(){poolUV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
     fragmentShader: `varying vec2 poolUV; uniform vec3 lightColor;
-      void main(){float radius=length((poolUV-.5)*2.0);float a=exp(-radius*radius*6.0)*.52*(1.0-smoothstep(.65,1.0,radius));
+      void main(){float radius=length((poolUV-.5)*2.0);float a=exp(-radius*radius*6.0)*.20*(1.0-smoothstep(.65,1.0,radius));
         gl_FragColor=vec4(lightColor,a);
         #include <colorspace_fragment>
       }`,
@@ -120,8 +120,8 @@ export function createVault(container) {
   ];
   profile.forEach(point => point.multiplyScalar(coinScale));
   const coinGeometry = track(new THREE.LatheGeometry(profile, mobile ? 32 : 48));
-  const coinMaterial = track(new THREE.MeshStandardMaterial({ color: 0xf4dfa4, metalness: 1, roughness: .26, envMap: scene.environment, envMapIntensity: 1.1 }));
-  const markMaterial = track(new THREE.MeshStandardMaterial({ color: 0x78502a, metalness: .9, roughness: .4, envMap: scene.environment, envMapIntensity: .65 }));
+  const coinMaterial = track(new THREE.MeshStandardMaterial({ color: 0xffcb3f, metalness: 1, roughness: .26, envMap: scene.environment, envMapIntensity: 1.1 }));
+  const markMaterial = track(new THREE.MeshStandardMaterial({ color: 0x65401d, metalness: .9, roughness: .4, envMap: scene.environment, envMapIntensity: .65 }));
   const markGeometry = track(createSolanaCoinMarkGeometry({ coinScale }));
   const maxCoins = mobile ? 110 : 180;
   const coins = new THREE.InstancedMesh(coinGeometry, coinMaterial, maxCoins);
@@ -315,26 +315,25 @@ export function createVault(container) {
       bodyMesh = body;
       bank.updateMatrixWorld(true);
       transmission = createTransmissionPass({ renderer, scene, camera, body });
-      // Keep the transmitted light neutral so gold inside does not turn copper.
-      // The lightly frosted surface has its own rose tint; most light still
-      // travels through the two captured glass walls.
+      // Neutral transmission keeps the saturated gold readable. A faint cool
+      // surface reflection separates the clear shell from the arcade field.
       transmission.material.color.set(0xffffff);
-      transmission.material._transmission = .88;
-      transmission.material.attenuationColor.set(0xffb8cf);
-      transmission.material.attenuationDistance = 3;
-      transmission.material.roughness = mobile ? .025 : .018;
-      transmission.material.thickness = .075;
+      transmission.material._transmission = .97;
+      transmission.material.attenuationColor.set(0xffffff);
+      transmission.material.attenuationDistance = Infinity;
+      transmission.material.roughness = mobile ? .016 : .011;
+      transmission.material.thickness = .055;
       transmission.material.ior = 1.46;
-      transmission.material.envMapIntensity = .8;
+      transmission.material.envMapIntensity = 1.1;
       const compileTransmission = transmission.material.onBeforeCompile;
       transmission.material.onBeforeCompile = (shader, renderer) => {
         compileTransmission(shader, renderer);
         shader.fragmentShader = shader.fragmentShader.replace(
           'totalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );',
-          'totalDiffuse = mix( totalDiffuse * vec3(1.0, 0.48, 0.67), transmission.rgb, material.transmission );',
+          'totalDiffuse = mix( totalDiffuse * vec3(0.93, 0.95, 1.0), transmission.rgb, material.transmission );',
         );
       };
-      transmission.material.customProgramCacheKey = () => 'piggy-rose-glass-v2';
+      transmission.material.customProgramCacheKey = () => 'piggy-arcade-clear-v1';
       resize();
       const { createCoinSimulation } = await import('./coin-simulation.js');
       physics = await createCoinSimulation({ shellMesh: body, maxCoins, radius: .17, halfHeight: .023 * coinScale, reducedMotion: reduced, onImpact: () => { if (!reduced) impact = Math.max(impact, .3); } });
