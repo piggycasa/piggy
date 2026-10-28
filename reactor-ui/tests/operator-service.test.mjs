@@ -136,3 +136,8 @@ test('legacy heartbeat filtering keeps terminal status but strips private fields
   assert.deepEqual(parseOperatorHeartbeat('legacyPublisher','{"status":"published","epoch":"4","rpc":"SECRET"}'),{status:'published',epoch:'4'});
   assert.equal(parseOperatorHeartbeat('legacyProofSync','{"status":"unknown","secret":"SECRET"}'),null);
 });
+
+test('local proof hosting starts only keeper and publisher and serves no private files',async t=>{
+ const f=await fixture(t);f.env.PIGGY_PROOFS_MODE='local';await fs.unlink(path.join(f.dataDir,'upload-token'));await fs.unlink(path.join(f.dataDir,'proof-upload-config.json'));
+ const service=await startOperatorService({...f,isAlive:()=>false,log:()=>{}});t.after(()=>service.stop());await delay(1);assert.equal(f.spawnCalls.length,2);assert.deepEqual(Object.keys(service.status().roles),['keeper','publisher']);const response=await fetch(service.url+'/proofs/index.json');assert.equal(response.status,200);assert.deepEqual(await response.json(),{preserve:true});assert.equal((await fetch(service.url+'/proofs/keys/keeper.json')).status,404);assert.equal((await fetch(service.url+'/proofs/index.json',{method:'POST'})).status,405);
+});

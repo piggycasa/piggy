@@ -6,6 +6,7 @@ import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
+import { proofResponse } from './proof-http.mjs';
 
 const CODE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const inside = (root, candidate) => candidate === root || candidate.startsWith(root + path.sep);
@@ -34,18 +35,18 @@ async function privateJson(filename) {
   return JSON.parse(await fs.readFile(filename, 'utf8'));
 }
 
-async function inspectFiles(dataDir, codeDir, { legacy = false } = {}) {
+async function inspectFiles(dataDir, codeDir, { legacy = false, proofHosting = 'external' } = {}) {
   const keeperFile = path.join(dataDir, `configs/keeper.${legacy?'legacy':'active'}.json`), publisherFile = path.join(dataDir, `configs/publisher.${legacy?'legacy':'active'}.json`), uploadFile = path.join(dataDir, 'proof-upload-config.json');
-  const [keeper, publisher, upload, migration] = await Promise.all([privateJson(keeperFile), privateJson(publisherFile), privateJson(uploadFile), privateJson(path.join(dataDir,'migration.json'))]);
+  const [keeper, publisher, upload, migration] = await Promise.all([privateJson(keeperFile), privateJson(publisherFile), proofHosting==='local'?null:privateJson(uploadFile), privateJson(path.join(dataDir,'migration.json'))]);
   const resolve = (filename, value) => { if (typeof value !== 'string') throw new Error('Missing operator path.'); const resolved = path.resolve(path.dirname(filename), value); if (!inside(dataDir, resolved)) throw new Error('Operator data path leaves the persistent volume.'); return resolved; };
   if (keeper.cluster !== 'mainnet-beta' || publisher.cluster !== 'mainnet-beta' || keeper.mainnetEnabled !== true || publisher.mainnetEnabled !== true || ['programId','gameVersion','piggyMint','genesisHash'].some(key => String(keeper[key]) !== String(publisher[key]))) throw new Error('Operator configurations do not share the enabled mainnet deployment.');
   if(legacy&&keeper.settleOnly!==true)throw new Error('Legacy keeper must be explicitly settle-only.');
   if (migration.schemaVersion !== 1 || !/^[a-f\d]{64}$/.test(migration.id??'') || !Number.isSafeInteger(migration.openingSlot) || migration.openingSlot < 0 || ['cluster','programId','gameVersion','piggyMint','genesisHash'].some(key=>String(migration.domain?.[key])!==String(keeper[key]))) throw new Error('A completed matching operator migration marker is required.');
   const keeperWorkspace = resolve(keeperFile, keeper.workspace), publisherWorkspace = resolve(publisherFile, publisher.workspace), proofOutput = resolve(publisherFile, publisher.proofOutput);
-  const publisherState = resolve(keeperFile, keeper.publisherStateFile), keeperKey = resolve(keeperFile, keeper.keeperKeypair), publisherKey = resolve(publisherFile, publisher.publisherKeypair), tokenFile = resolve(uploadFile, upload.tokenFile);
-  if (keeperWorkspace === publisherWorkspace || publisherState !== path.join(publisherWorkspace, 'state.json') || resolve(uploadFile, upload.proofDirectory) !== proofOutput || keeperKey === publisherKey || inside(proofOutput, keeperKey) || inside(proofOutput, publisherKey) || inside(proofOutput, tokenFile)) throw new Error('Operator paths overlap or refer to inconsistent journals.');
+  const publisherState = resolve(keeperFile, keeper.publisherStateFile), keeperKey = resolve(keeperFile, keeper.keeperKeypair), publisherKey = resolve(publisherFile, publisher.publisherKeypair), tokenFile = proofHosting==='local'?null:resolve(uploadFile, upload.tokenFile);
+  if (keeperWorkspace === publisherWorkspace || publisherState !== path.join(publisherWorkspace, 'state.json') || proofHosting!=='local' && resolve(uploadFile, upload.proofDirectory) !== proofOutput || keeperKey === publisherKey || inside(proofOutput, keeperKey) || inside(proofOutput, publisherKey) || tokenFile && inside(proofOutput, tokenFile)) throw new Error('Operator paths overlap or refer to inconsistent journals.');
   // Presence and permissions only: this supervisor never loads secret key/token contents.
-  for (const filename of [keeperKey, publisherKey, tokenFile, publisherState, path.join(keeperWorkspace, 'keeper-state.json')]) {
+  for (const filename of [keeperKey, publisherKey, ...(tokenFile?[tokenFile]:[]), publisherState, path.join(keeperWorkspace, 'keeper-state.json')]) {
     const stat = await fs.stat(filename); if (!stat.isFile() || (stat.mode & 0o077) || !inside(dataDir, await fs.realpath(filename))) throw new Error('Required private operator data is missing, exposed or outside its volume.');
   }
   const index = path.join(proofOutput, 'index.json'); if (!inside(dataDir, await fs.realpath(index))) throw new Error('Proof index leaves the operator volume.');
@@ -53,19 +54,20 @@ async function inspectFiles(dataDir, codeDir, { legacy = false } = {}) {
   const definitions = [
     { name: 'keeper', args: [path.join(codeDir,'scripts/round-keeper.mjs'),'watch','--config',keeperFile,'--allow-mainnet'], lock: path.join(keeperWorkspace,'publisher.lock') },
     { name: 'publisher', args: [path.join(codeDir,'scripts/holder-publisher.mjs'),'watch','--config',publisherFile,'--allow-mainnet'], lock: path.join(publisherWorkspace,'publisher.lock') },
-    { name: 'proofSync', args: [path.join(codeDir,'scripts/watch-holder-proofs.mjs'),'--config',uploadFile,'--interval-seconds','30'], lock: path.join(`${uploadFile}.watch`,'publisher.lock') },
+    ...(proofHosting==='local'?[]:[{ name: 'proofSync', args: [path.join(codeDir,'scripts/watch-holder-proofs.mjs'),'--config',uploadFile,'--interval-seconds','30'], lock: path.join(`${uploadFile}.watch`,'publisher.lock') }]),
   ];
   if(legacy)for(const definition of definitions)definition.name={keeper:'legacyKeeper',publisher:'legacyPublisher',proofSync:'legacyProofSync'}[definition.name];
   return {definitions,keeper,publisher,upload,resources:await Promise.all([keeperWorkspace,publisherWorkspace,proofOutput].map(value=>fs.realpath(value)))};
 }
 
-export async function inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir=null,combinedRentCapLamports=120_000_000,combinedFeeCapLamports=500_000}={}){
-  const primary=await inspectFiles(dataDir,codeDir);
+export async function inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir=null,combinedRentCapLamports=120_000_000,combinedFeeCapLamports=500_000,proofHosting='external'}={}){
+  if(!['local','external'].includes(proofHosting))throw new Error('Invalid proof hosting mode.');
+  const primary=await inspectFiles(dataDir,codeDir,{proofHosting});
   if(!legacyDataDir)return primary.definitions;
-  const legacy=await inspectFiles(legacyDataDir,codeDir,{legacy:true});
+  const legacy=await inspectFiles(legacyDataDir,codeDir,{legacy:true,proofHosting});
   if(legacyDataDir===dataDir||String(primary.keeper.gameVersion)===String(legacy.keeper.gameVersion)||['programId','piggyMint','genesisHash','cluster'].some(key=>primary.keeper[key]!==legacy.keeper[key]))throw new Error('Legacy and current operators must be different games on the same deployment.');
   if(primary.resources.some(a=>legacy.resources.some(b=>inside(a,b)||inside(b,a))))throw new Error('Legacy and current journals or proof directories overlap.');
-  if(new URL(primary.upload.siteUrl).origin===new URL(legacy.upload.siteUrl).origin)throw new Error('Legacy and current proof origins must be independent.');
+  if(proofHosting!=='local'&&new URL(primary.upload.siteUrl).origin===new URL(legacy.upload.siteUrl).origin)throw new Error('Legacy and current proof origins must be independent.');
   for(const[field,cap]of[['maxDailyRentLamports',combinedRentCapLamports],['maxDailyFeeLamports',combinedFeeCapLamports]]){
     const values=[primary.keeper[field],legacy.keeper[field]];
     if(!Number.isSafeInteger(cap)||cap<1||values.some(x=>!Number.isSafeInteger(x)||x<1)||values[0]+values[1]>cap)throw new Error('Combined legacy and current keeper budgets exceed the shared cap.');
@@ -93,11 +95,12 @@ export async function startOperatorService({ env = process.env, codeDir = CODE, 
   if (enabled && env.PIGGY_OPERATOR_LOCK_HELD !== '1') throw new Error('Enabled operators require the deployment wrapper kernel lock.');
   if(enabled&&legacyDataDir&&env.PIGGY_OPERATOR_LEGACY_LOCK_HELD!=='1')throw new Error('Legacy operators require their independent deployment wrapper kernel lock.');
   let stopping = false, seeded = false, definitions = [], lastExit = null;
-  const roleNames=['keeper','publisher','proofSync',...(legacyDataDir?['legacyKeeper','legacyPublisher','legacyProofSync']:[])];
+  const proofHosting=env.PIGGY_PROOFS_MODE||'external';if(!['local','external'].includes(proofHosting))throw new Error('Invalid proof hosting mode.');
+  const roleNames=['keeper','publisher',...(proofHosting==='external'?['proofSync']:[]),...(legacyDataDir?['legacyKeeper','legacyPublisher',...(proofHosting==='external'?['legacyProofSync']:[])]:[])];
   const requiredHeartbeats=['keeper','publisher',...(legacyDataDir?['legacyKeeper','legacyPublisher']:[])];
   const roles = new Map(roleNames.map(name => [name,{name,state:enabled?'unseeded':'disabled',child:null,timer:null,failures:0,lastActivityAt:null,lastSuccessAt:null,lastStatus:null}]));
   const status = () => ({ ready: enabled && seeded && [...roles.values()].every(role => role.state === 'running') && requiredHeartbeats.every(name=>{const stamp=roles.get(name).lastSuccessAt;return stamp&&Date.now()-Date.parse(stamp)<=heartbeatTtlMs;}), enabled, roles: Object.fromEntries([...roles].map(([name,role]) => [name,{state:role.state,lastActivityAt:role.lastActivityAt,lastSuccessAt:role.lastSuccessAt,lastStatus:role.lastStatus}])), lastExit });
-  const server = http.createServer((req,res) => { if (req.method !== 'GET' || !['/','/health','/ready'].includes(req.url)) { res.writeHead(404); res.end(); return; } const value = status(); res.writeHead(req.url === '/ready' && !value.ready ? 503 : 200,{'content-type':'application/json','cache-control':'no-store'}); res.end(JSON.stringify(value)); });
+  const server = http.createServer(async (req,res) => { if(proofHosting==='local'){const proof=await proofResponse({url:req.url,method:req.method,root:path.join(dataDir,'public/proofs')});if(proof){res.writeHead(proof.status,proof.headers);res.end(proof.body);return;}} if (req.method !== 'GET' || !['/','/health','/ready'].includes(req.url)) { res.writeHead(404); res.end(); return; } const value = status(); res.writeHead(req.url === '/ready' && !value.ready ? 503 : 200,{'content-type':'application/json','cache-control':'no-store'}); res.end(JSON.stringify(value)); });
   await new Promise((resolve,reject) => { server.once('error',reject); server.listen(port,'0.0.0.0',resolve); });
   async function finished(role, child, started, code, signal) {
     if (role.child !== child) return;
@@ -126,7 +129,7 @@ export async function startOperatorService({ env = process.env, codeDir = CODE, 
     child.once('error',()=>finish(null,'SPAWN_ERROR')); child.once('exit',finish);
   }
   try {
-    definitions=await inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir}); seeded=true;
+    definitions=await inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir,proofHosting}); seeded=true;
     if (enabled) {
       // The external kernel lock excludes another supervisor on this volume.
       // A still-live PID fails closed, protecting orphaned children after a crash.

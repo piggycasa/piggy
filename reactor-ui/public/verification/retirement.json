@@ -1,0 +1,7 @@
+{
+  "status": "retired",
+  "retiredAt": "2026-10-28",
+  "programId": "3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK",
+  "closureTransaction": "HAZRvSWzwSGnEEbifAgrSwx6d5bFLFrVwPgC6hd6H77BBMgJL2qHxGeBuKtkP5ZNDJW3cQbsmHu3NSLb8dm1cU2",
+  "note": "The previous deployment is closed. New deployment requires new configuration; never re-enable this retired program."
+}
