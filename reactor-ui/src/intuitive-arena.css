@@ -1,0 +1,625 @@
+/* PIGGY: one physical prize, two clear ways to participate. */
+:root{--kb-purple:#190f28;--kb-pink:#ff8fae;--kb-yellow:#e6ff72;--kb-white:#fff2e5;--kb-muted:#b5a7c2;--pig-ink:#190f28;--pig-cream:#fff2e5;--pig-pink:#ff8fae;--pig-gold:#ffd477;--pig-lime:#e6ff72}
+html,body{background:var(--pig-ink);color:var(--pig-cream);font-style:normal}
+.icon-library{position:absolute;width:0;height:0;overflow:hidden}
+.ui-icon{display:block;width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+[hidden]{display:none!important}
+#app.piggy-studio{--kb-header-size:76px;--kb-footer-size:42px;--kb-inline-space:38px;background:var(--pig-ink);font-style:normal}
+.piggy-studio .topbar{gap:22px;border-bottom:1px solid #fff2e513}
+.piggy-studio .brand{font-size:30px;letter-spacing:-1px;color:var(--pig-cream)}
+.piggy-studio .piggy-mark{width:35px;height:44px;filter:brightness(0) saturate(100%) invert(78%) sepia(27%) saturate(1356%) hue-rotate(295deg) brightness(105%)}
+.piggy-studio .demo-badge{font-style:normal;color:#c9bcd5;font-size:12px}
+.piggy-studio .status-dot{background:var(--pig-lime);width:5px;height:5px}
+.piggy-studio .topbar nav{gap:22px}
+.piggy-studio .topbar nav>button,.piggy-studio .topbar nav>a{font-size:13px;font-style:normal;letter-spacing:0;text-transform:none;min-height:44px;display:flex;align-items:center;gap:8px;padding:8px 0}
+.piggy-studio .topbar .history-button{display:none}
+.piggy-studio .topbar .story-link{color:#c9bcd5}
+.piggy-studio .topbar .wallet-button{background:var(--pig-pink);color:var(--pig-ink);border:1px solid var(--pig-pink);border-radius:50px;padding:10px 19px;max-width:210px}
+.piggy-studio .wallet-button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.piggy-studio .topbar .wallet-button:hover{background:var(--pig-cream);color:var(--pig-ink)}
+.piggy-studio .topbar .rewards-button #hud-rewards{font-size:12px;color:var(--pig-lime);font-weight:500}
+.piggy-studio .claim-word{display:none}
+#arena.intuitive-arena{width:min(1370px,100%);height:100%;padding:22px 0 20px;display:grid;grid-template-columns:minmax(0,1fr) 352px;gap:42px;--kb-art-offset:0;--kb-art-height:auto}
+#arena .jackpot-stage{position:relative;inset:auto;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:visible;gap:10px}
+#arena .stage-heading{position:static;inset:auto;display:flex;justify-content:space-between;align-items:center;gap:20px;text-align:left;pointer-events:auto}
+#arena .stage-heading h1{display:block;font-family:var(--font-display);font-size:31px;letter-spacing:-1px;line-height:1.1;font-style:normal;font-weight:400;text-transform:none}
+#arena .round-badge{position:static;display:flex;align-items:center;gap:7px;font-size:12px;color:#c9bcd5;font-style:normal;white-space:nowrap}
+#arena .countdown-arena{position:relative;inset:auto;display:grid;grid-template-rows:auto minmax(150px,1fr) auto auto;gap:10px;min-height:0;pointer-events:auto}
+#arena .round-status{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:start;position:relative;z-index:3}
+#arena .pot-block,#arena .timer-group{position:static;inset:auto;transform:none;text-align:left;min-width:0;width:auto}
+#arena .quiet-label,#arena .timer-caption{display:flex;align-items:center;gap:7px;color:#c9bcd5;text-transform:none;font-style:normal;font-size:13px;letter-spacing:0;line-height:1.2}
+#arena .quiet-label .ui-icon{color:var(--pig-gold);width:20px;height:20px}
+#arena .timer-caption .ui-icon{color:var(--pig-pink);width:18px;height:18px}
+#arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:flex-start;gap:4px 11px;margin:7px 0 0;font-size:clamp(43px,4.5vw,65px);font-style:normal;line-height:1.05;letter-spacing:-1.8px;font-weight:400;font-variant-numeric:tabular-nums}
+.money-pair .usd-equivalent{font:inherit;color:inherit;margin:0;white-space:nowrap}
+.money-pair .sol-equivalent{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
+.money-pair[data-usd-available=true]>.sol-equivalent{font-size:13px;color:#a99ab7;letter-spacing:0}
+#arena .pot-amount .currency{font-size:13px;font-style:normal;color:var(--pig-gold)}
+#arena .pot-caption{display:block;margin:6px 0 0;max-width:36ch;font-size:13px;line-height:1.3;font-style:normal;color:#c9bcd5}
+#arena .countdown{display:flex;align-items:baseline;justify-content:flex-start;gap:2px;font-size:37px;font-weight:400;font-style:normal;line-height:1.15;letter-spacing:-.8px;margin-top:9px;font-variant-numeric:tabular-nums}
+#arena .countdown b{font-size:.65em;color:#7e6b91;font-weight:400}
+#arena .countdown-meter{height:2px;background:#ffffff15;margin-top:12px;width:100%}
+#arena .countdown-meter i{background:var(--pig-pink)}
+#arena .time-extension{color:var(--pig-lime);font-size:13px}
+#arena .safe-stage{position:relative;inset:auto;width:100%;height:100%;min-height:0;min-width:0;overflow:hidden;pointer-events:auto;isolation:isolate}
+#arena .safe-stage>#safe-art{position:absolute;inset:0;width:100%;height:100%;min-height:0}
+#arena .safe-stage::before,#arena .safe-stage::after{content:none}
+#arena .bank-load-status{font-size:12px;color:var(--pig-pink);font-style:normal}
+#arena .leader-group{position:relative;inset:auto;transform:none;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:0;z-index:3;color:#c9bcd5;font-size:12px;font-style:normal;line-height:1.3}
+#arena .leader-crown{color:var(--pig-gold);width:20px;height:20px}
+#arena .leader-label{font-size:12px;color:#b5a7c2}
+#arena .leader-chip{display:flex;align-items:center;gap:7px;min-width:0}
+#arena .leader-chip>strong{font-size:14px;font-weight:500;font-style:normal;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--pig-cream)}
+#arena .leader-avatar{width:21px;height:21px;display:grid;place-items:center;font-size:11px;border:1px solid #ffffff20;border-radius:50%}
+#arena .leader-chip .crown{display:none}
+#arena .key-loot{position:relative;inset:auto;transform:none;width:100%;display:flex;align-items:center;gap:15px;background:#2b1c3e;border:1px solid #5c3e6b;border-radius:15px;padding:13px 18px;z-index:4;text-align:left;min-width:0}
+#arena .reward-key{width:30px;height:30px;color:var(--pig-gold)}
+#arena .personal-rewards{display:flex;justify-content:space-between;align-items:center;gap:20px;flex:1;min-width:0}
+#arena .loot-label{display:block;font-size:14px;font-style:normal;line-height:1.3;color:var(--pig-cream);white-space:nowrap}
+#arena .loot-label small{display:block;font-size:11px;font-style:normal;color:#b5a7c2;margin-top:3px}
+#arena .loot-amount,#arena .loot-amount.is-precise{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px;font-size:23px;font-weight:400;line-height:1.1;letter-spacing:-.4px;font-style:normal;margin:0}
+#arena .loot-amount strong{font-size:inherit;font-weight:400;white-space:nowrap}
+#arena .loot-amount small{font-size:11px;font-style:normal;color:#b5a7c2}
+#arena .key-loot[data-wallet-known=false] .loot-amount{font-size:12px;letter-spacing:0;color:#b5a7c2}
+#arena .key-loot[data-wallet-known=false] .loot-amount small{display:none}
+#arena .loot-claim{min-width:100px;min-height:44px;border:0;border-left:1px solid #694c78;padding:8px 0 8px 16px;background:none;color:var(--pig-cream);font-size:13px;font-style:normal;display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+#arena .loot-claim .ui-icon{width:17px;height:17px}
+#arena .purchase-panel{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;justify-content:center;gap:16px;width:auto;min-width:0;min-height:0;max-width:none;padding:0;border:0;font-style:normal;z-index:5}
+#arena .play-ticket{position:relative;background:var(--pig-cream);color:var(--pig-ink);padding:23px 23px 17px;border-radius:21px;box-shadow:0 18px 50px #0b041d30;display:flex;flex-direction:column;gap:17px;min-width:0}
+#arena .panel-heading{display:flex;align-items:center;gap:13px}
+#arena .ticket-icon{display:grid;place-items:center;background:#ffd2dd;color:#6b2849;width:47px;height:47px;border-radius:14px;flex:none;transform:rotate(-7deg)}
+#arena .ticket-icon .ui-icon{width:25px;height:25px}
+#arena .panel-heading h2{font-family:var(--font-display);font-weight:400;font-size:25px;letter-spacing:-1px;line-height:1.1;font-style:normal;text-transform:none}
+#arena .panel-heading p{font-size:13px;line-height:1.4;color:#745f72;margin-top:6px}
+#arena .quantity-section{min-width:0}
+#arena .quantity-label{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:7px;color:#68536a}
+#arena .quantity-label>span{font-size:11px;white-space:nowrap}
+#arena .quantity-row{display:flex;flex-direction:column;gap:7px}
+#arena .quantity-control{display:flex;align-items:center;justify-content:space-between;border:1px solid #d7bfd0;background:#fff9f4;border-radius:10px;height:49px;min-width:0}
+#arena .quantity-control button{height:47px;width:45px;min-width:44px;display:grid;place-items:center;color:var(--pig-ink);font-size:25px;flex:none;padding:0}
+#arena .quantity-control button:disabled{opacity:.3}
+#arena .quantity-control input{background:transparent;color:var(--pig-ink);border:0;font-style:normal;font-size:21px;font-weight:500;min-width:0;width:100%;height:44px;text-align:center;appearance:textfield;-moz-appearance:textfield}
+#arena .quantity-control input::-webkit-inner-spin-button,#arena .quantity-control input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#arena .quantity-unit{font-size:12px;color:#81697b;padding-right:10px}
+#arena .quantity-presets{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;height:44px}
+#arena .quantity-presets button{flex:1;min-width:0;min-height:44px;height:44px;border:1px solid transparent;font-size:12px;font-style:normal;padding:6px;color:#796177}
+#arena .quantity-presets button.selected{border:1px solid #d0b5c6;border-radius:7px;color:var(--pig-ink);background:#f4e4e4}
+#arena .purchase-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0}
+#arena .purchase-summary>div{min-width:0}
+#arena .entry-cost{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left}
+#arena .entry-cost>span:first-child,#arena .time-preview>span{font-size:11px;font-style:normal;color:#796177}
+#arena .entry-cost>.usd-equivalent{font-size:32px;letter-spacing:-1px;line-height:1.1;font-weight:500}
+#arena .entry-cost>.sol-equivalent{font-size:13px;letter-spacing:0;color:#796177;gap:4px;white-space:nowrap}
+#arena .entry-cost[data-usd-available=false]>.sol-equivalent{font-size:23px;color:var(--pig-ink)}
+#arena .entry-cost .sol-equivalent small{font-size:11px}
+#arena .time-preview{display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right}
+#arena .time-preview>strong{display:flex;align-items:center;gap:5px;font-size:15px;font-weight:500;white-space:nowrap;font-style:normal}
+#arena .time-preview .ui-icon{width:16px;height:16px;color:#ac5e76}
+#arena .time-preview>small{display:block;font-size:11px;color:#796177;line-height:1.3;white-space:nowrap}
+#arena .buy-action{display:flex;flex-direction:column;gap:7px;text-align:center}
+#arena #buy-button{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;max-width:none;min-height:56px;padding:13px 17px;margin:0;background:var(--pig-ink);border:0;border-radius:10px;font-size:17px;font-weight:500;line-height:1.3;letter-spacing:0;font-style:normal;text-transform:none;color:var(--pig-lime);box-shadow:none}
+#arena #buy-button:hover:not(:disabled){background:#392343;color:var(--pig-lime);transform:none}
+#arena #buy-button:disabled{opacity:.5}
+#arena #buy-button>.ui-icon{height:20px;width:20px;display:block}
+#arena #buy-button.has-cost-review{padding-block:11px}
+#arena #buy-button .buy-extra-cost{font-size:11px;font-style:normal;color:#e6ff72ad;line-height:1.3}
+#arena #preview-lead-result{display:block;color:#6f546a;font-size:11px;line-height:1.25}
+#arena .purchase-footnote{font-size:11px;line-height:1.35;color:#7e6177;font-style:normal;grid-area:auto;margin:0}
+#arena .purchase-footnote:empty{display:none}
+#arena .your-position{min-width:0;border-top:1px solid #dbc7d2;padding-top:12px;display:block}
+#arena .position-values{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;padding:0}
+#arena .position-values>div,#arena .position-values>.position-count{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+#arena .position-values>div>span{display:flex;align-items:center;gap:5px;font-size:11px;color:#796177;line-height:1.3}
+#arena .position-values>div>span:after{content:none}
+#arena .position-values .ui-icon{width:13px;height:13px}
+#arena .position-values strong{display:flex;align-items:baseline;gap:5px;flex-wrap:nowrap;font-size:16px;line-height:1.25;font-style:normal;font-weight:500}
+#arena .position-values i{color:#b48ba4;font-style:normal}
+#arena .position-values small{font-size:inherit}
+#arena #preview-share-after{color:#8d3555}
+#arena .key-share-track{display:none}
+#arena #purchase-outcome{font-size:12px;color:#a03152;margin-top:7px;line-height:1.3}
+#arena .ticket-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+#arena .price-rise{display:flex;align-items:center;gap:5px;max-width:160px;color:#796177;font-size:11px;line-height:1.3}
+#arena .price-rise .ui-icon{width:16px;height:16px;color:#a2596d}
+#arena .mode-button{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap;min-height:44px;max-width:135px;width:auto;border:0;padding:4px 0;color:#6e5269;font-size:11px;line-height:1.25;font-style:normal;grid-area:auto}
+#arena .mode-button strong{font-weight:500;font-size:11px;color:var(--pig-ink)}
+#arena .arena-token-note{font-size:11px;color:#8b7184;margin:0;text-align:center;line-height:1.3}
+#arena .holder-ticket{position:relative;display:flex;flex-direction:column;gap:14px;padding:19px 22px;border:1px solid #664567;border-radius:18px;background:#30203d;color:var(--pig-cream);min-width:0}
+#arena .holder-heading{display:flex;align-items:center;gap:12px;padding-right:0}
+#arena .holder-heading>img{width:37px;height:37px;object-fit:contain;filter:brightness(0) saturate(100%) invert(78%) sepia(27%) saturate(1356%) hue-rotate(295deg) brightness(105%)}
+#arena .holder-heading h2{font-family:var(--font-display);font-size:20px;font-weight:400;line-height:1.1;font-style:normal;letter-spacing:-.6px}
+#arena .holder-heading p{font-size:12px;color:#c8b8d1;margin-top:5px;line-height:1.4}
+#arena .holder-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#arena .holder-money{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+#arena .holder-money>.usd-equivalent{font-size:23px;font-weight:500;letter-spacing:-.5px}
+#arena #holder-earn-amount{font-size:12px;white-space:nowrap;color:#c8b8d1}
+#arena #holder-short-status{font-size:11px;line-height:1.3;color:#b7a2c4}
+#arena .holder-claim{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 0 9px 9px;color:var(--pig-pink);font-size:13px;white-space:nowrap}
+#arena .holder-claim .ui-icon{width:17px;height:17px}
+#arena .get-piggy{display:flex;align-items:center;gap:6px;min-height:44px;font-size:11px;color:#d4bbde;align-self:flex-start;border-top:1px solid #ffffff18;width:100%;padding-top:8px}
+#arena .get-piggy .ui-icon{width:15px;height:15px}
+.piggy-studio .live-footer{position:relative;display:flex;align-items:center;gap:20px;min-width:0;padding-bottom:var(--kb-safe-bottom);border-top:1px solid #ffffff16;color:#b5a7c2;font-style:normal}
+.piggy-studio .live-label{display:flex;align-items:center;gap:7px;font-size:11px;white-space:nowrap;color:#e7d4ef}
+.piggy-studio .live-label .ui-icon{height:15px;width:15px;color:var(--pig-pink)}
+.piggy-studio .activity-list{display:flex;align-items:center;gap:25px;min-width:0;overflow:hidden}
+.piggy-studio .activity-row{display:flex;align-items:center;gap:9px;font-style:normal;font-size:11px;white-space:nowrap;color:#b5a7c2}
+.piggy-studio .activity-user{display:flex;align-items:center;gap:5px;color:#e6d9ee}
+.piggy-studio .activity-avatar{width:19px;height:19px;font-size:11px;border-radius:50%}
+.piggy-studio .activity-row time{font-size:11px;color:#8e7f9c}
+.piggy-studio .activity-row>span:nth-last-child(2){color:var(--pig-gold)}
+#arena .sound-button{min-width:44px;min-height:44px;padding:12px;color:#ad98bc}
+#arena .arena-feedback{font-style:normal;max-width:min(450px,94%);left:50%;bottom:6%;transform:translateX(-50%);top:auto;z-index:8;background:#271532e8;border:1px solid #d48ba45e;border-radius:12px;padding:12px 16px;backdrop-filter:blur(8px)}
+#arena .arena-feedback strong{color:var(--pig-cream);font-style:normal}
+#arena .arena-feedback p,#arena .arena-feedback span{font-style:normal}
+#arena .pot-increase{display:none}
+.piggy-studio.urgent .timer-group{color:var(--pig-pink)}
+.piggy-studio.urgent .countdown{color:var(--pig-pink)}
+@media(min-width:1000px) and (max-height:800px){
+ #app.piggy-studio{--kb-header-size:65px;--kb-footer-size:32px}
+ #arena.intuitive-arena{padding:15px 0 12px;gap:30px;grid-template-columns:minmax(0,1fr) 336px}
+ #arena .play-ticket{padding:18px 20px 14px;gap:11px}
+ #arena .holder-ticket{padding:14px 20px;gap:8px}
+ #arena .panel-heading h2{font-size:23px}
+ #arena .get-piggy{min-height:28px;padding-top:5px}
+ #arena .stage-heading h1{font-size:27px}
+ #arena .countdown-arena{gap:7px}
+ #arena .key-loot{padding:10px 15px}
+}
+@media(max-width:999px) and (orientation:portrait){
+ #app.piggy-studio{--kb-header-size:58px;--kb-footer-size:28px;--kb-inline-space:18px}
+ .piggy-studio .brand{font-size:24px}.piggy-studio .piggy-mark{width:28px;height:28px}
+ .piggy-studio .topbar{gap:10px}.piggy-studio .demo-badge{font-size:11px;position:absolute;top:41px;left:36px}
+ .piggy-studio .topbar nav{gap:10px}
+ .piggy-studio .topbar nav>button,.piggy-studio .topbar nav>a{font-size:12px;padding:8px 0;gap:5px}
+ .piggy-studio .topbar .story-link,.piggy-studio .code-link,.piggy-studio .help-button span,.piggy-studio .reward-word,.piggy-studio .claim-word,.piggy-studio #hud-rewards{display:none}
+ .piggy-studio .topbar .wallet-button{min-width:44px;max-width:148px;padding:8px 12px;font-size:11px}
+ .piggy-studio .topbar .help-button,.piggy-studio .topbar .rewards-button{width:36px;justify-content:center;min-width:36px}
+ #arena.intuitive-arena{grid-template-columns:1fr;grid-template-rows:minmax(220px,1fr) auto;gap:13px;padding:10px 0 6px}
+ #arena .jackpot-stage{gap:0}
+ #arena .stage-heading{position:absolute;top:0;right:0;z-index:5}
+ #arena .stage-heading h1{display:none}
+ #arena .round-badge{font-size:11px;display:none}
+ #arena .countdown-arena{grid-template-rows:auto minmax(105px,1fr) auto auto;gap:5px}
+ #arena .round-status{gap:12px;align-items:start}
+ #arena .quiet-label,#arena .timer-caption{font-size:11px;gap:5px}
+ #arena .quiet-label .ui-icon,#arena .timer-caption .ui-icon{width:15px;height:15px}
+ #arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{font-size:37px;margin-top:4px;gap:3px 7px;letter-spacing:-1px}
+ #arena .pot-amount[data-usd-available=true]>.sol-equivalent{font-size:11px}
+ #arena .pot-amount .currency{font-size:11px}
+ #arena .pot-caption{font-size:11px;line-height:1.3;margin-top:3px;max-width:24ch}
+ #arena .countdown{font-size:28px;margin-top:6px}
+ #arena .countdown-meter{margin-top:6px}
+ #arena .leader-group{gap:5px;font-size:11px}
+ #arena .leader-label{font-size:11px}
+ #arena .leader-chip>strong{font-size:11px;max-width:135px}
+ #arena .leader-avatar{width:16px;height:16px;font-size:8px}
+ #arena .leader-crown{width:15px;height:15px}
+ #arena .key-loot{gap:10px;border-radius:11px;padding:7px 10px}
+ #arena .reward-key{width:23px;height:23px}
+ #arena .personal-rewards{gap:8px;align-items:center}
+ #arena .loot-label{font-size:11px}
+ #arena .loot-label small{display:none}
+ #arena .loot-amount,#arena .loot-amount.is-precise{font-size:18px;letter-spacing:-.4px}
+ #arena .loot-amount .sol-equivalent{display:none}
+ #arena .loot-amount[data-usd-available=false] .sol-equivalent{display:inline-flex;font-size:15px}
+ #arena .key-loot[data-wallet-known=false] .loot-amount{display:none}
+ #arena .key-loot .loot-claim{min-width:66px;min-height:44px;font-size:11px;gap:5px;padding:6px 0 6px 9px}
+ #arena .loot-claim .ui-icon{width:14px;height:14px}
+ #arena .purchase-panel{gap:9px;display:grid;grid-template-columns:1fr}
+ #arena .play-ticket{display:grid;grid-template-columns:1fr 1fr;gap:9px 13px;padding:14px 16px 11px;border-radius:15px}
+ #arena .panel-heading{grid-column:1/-1;gap:9px}
+ #arena .ticket-icon{width:31px;height:31px;border-radius:8px}
+ #arena .ticket-icon .ui-icon{width:18px;height:18px}
+ #arena .panel-heading h2{font-size:21px;letter-spacing:-.7px}
+ #arena .panel-heading p{font-size:11px;line-height:1.3;margin:3px 0 0}
+ #arena .quantity-section{grid-column:1;grid-row:2;align-self:center}
+ #arena .quantity-label{display:none}
+ #arena .quantity-presets{display:none}
+ #arena .quantity-control{height:46px;border-radius:9px}
+ #arena .quantity-control button{min-width:32px;width:32px;height:44px;font-size:23px}
+ #arena .quantity-control input{font-size:17px;min-width:18px;height:44px}
+ #arena .quantity-unit{font-size:11px;padding-right:5px}
+ #arena .purchase-summary{grid-column:2;grid-row:2;display:flex;justify-content:flex-end;gap:8px;align-items:center}
+ #arena .entry-cost{gap:1px;align-items:flex-end}
+ #arena .entry-cost>span:first-child{display:none}
+ #arena .entry-cost>.usd-equivalent{font-size:24px;letter-spacing:-.8px;line-height:1.15}
+ #arena .entry-cost>.sol-equivalent{font-size:11px}
+ #arena .entry-cost .sol-equivalent small{font-size:11px}
+ #arena .time-preview{display:none}
+ #arena .buy-action{grid-column:1/-1;grid-row:3;gap:5px;min-width:0}
+ #arena #buy-button{min-height:48px;font-size:16px;border-radius:9px;padding:10px 13px}
+ #arena #buy-button.has-cost-review{padding-block:9px}
+ #arena #buy-button .buy-extra-cost{font-size:11px}
+ #arena #preview-lead-result{display:none}
+ #arena .purchase-footnote{font-size:11px;line-height:1.3}
+ #arena .your-position{grid-column:1;grid-row:4;border:0;padding:0;align-self:center}
+ #arena .position-values{gap:8px;grid-template-columns:auto auto}
+ #arena .position-values>div>span{font-size:11px;gap:3px}
+ #arena .position-values .ui-icon{display:none}
+ #arena .position-values strong{font-size:12px;line-height:1.2;gap:3px}
+ #arena .position-values>div{gap:3px}
+ #arena .ticket-bottom{grid-column:2;grid-row:4;justify-content:flex-end}
+ #arena .price-rise{display:none}
+ #arena .mode-button{min-height:44px;font-size:11px;max-width:130px}
+ #arena .mode-button strong{font-size:11px}
+ #arena .arena-token-note{display:none}
+ #arena .holder-ticket{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px 13px;border-radius:13px;min-height:64px;align-items:center}
+ #arena .holder-heading{gap:8px}
+ #arena .holder-heading>img{width:28px;height:28px}
+ #arena .holder-heading h2{font-size:16px;letter-spacing:-.4px}
+ #arena .holder-heading p{font-size:11px;margin-top:3px;white-space:nowrap}
+ #arena .holder-bottom{grid-column:2;grid-row:1/3;flex-direction:column;align-items:flex-end;justify-content:center;gap:0}
+ #arena .holder-money{display:none}
+ #arena .holder-claim{min-height:44px;font-size:11px;padding:5px 0;gap:5px}
+ #arena .holder-claim .ui-icon{width:14px;height:14px}
+ #arena .get-piggy{grid-column:1;grid-row:2;font-size:11px;min-height:22px;border:0;padding:0;margin-left:36px;width:auto}
+ #arena .get-piggy .ui-icon{width:12px;height:12px}
+ .piggy-studio .live-footer{gap:12px}
+ .piggy-studio .live-label{font-size:11px;gap:5px}
+ .piggy-studio .activity-row{font-size:11px}
+ .piggy-studio .activity-row time{display:none}
+ .piggy-studio .activity-avatar{display:none}
+ #arena .arena-feedback{padding:8px 10px;border-radius:9px;bottom:3%}
+}
+@media(orientation:portrait) and (max-height:680px){
+ #app.piggy-studio{--kb-header-size:50px;--kb-footer-size:22px;--kb-inline-space:14px}
+ #arena.intuitive-arena{padding-top:6px;gap:8px;grid-template-rows:minmax(180px,1fr) auto}
+ #arena .countdown-arena{grid-template-rows:auto minmax(95px,1fr) auto auto;gap:3px}
+ #arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{font-size:30px}
+ #arena .pot-caption{display:none}
+ #arena .countdown{font-size:24px}
+ #arena .play-ticket{padding:9px 11px 7px;gap:6px 10px}
+ #arena .panel-heading p{display:none}
+ #arena .panel-heading h2{font-size:18px}
+ #arena .ticket-icon{width:26px;height:26px}
+ #arena .panel-heading{gap:8px}
+ #arena .quantity-control{height:44px}
+ #arena .entry-cost>.usd-equivalent{font-size:23px}
+ #arena .holder-ticket{padding:7px 10px;min-height:58px}
+ #arena .holder-heading h2{font-size:15px}
+ #arena .key-loot{padding:4px 8px;gap:8px}
+ #arena .loot-label{font-size:11px}
+ #arena .key-loot .loot-claim{min-height:44px}
+ #arena .your-position{display:none}
+ #arena .ticket-bottom{grid-column:1/-1;justify-content:space-between;min-height:25px}
+ #arena .price-rise{display:flex;max-width:145px;font-size:11px}
+ #arena .mode-button{min-height:30px;font-size:11px;max-width:125px}
+ #arena .mode-button strong{font-size:11px}
+ #arena .purchase-footnote{font-size:11px}
+ #arena .leader-group{font-size:11px}
+ #arena .leader-avatar{display:none}
+ .piggy-studio .topbar .wallet-button{padding:8px 10px;max-width:110px}
+ .piggy-studio .wallet-button svg{display:none}
+}
+@media(orientation:landscape) and (max-height:600px){
+ #app.piggy-studio{--kb-header-size:48px;--kb-footer-size:24px;--kb-inline-space:20px}
+ .piggy-studio .topbar .history-button,.piggy-studio .topbar .story-link,.piggy-studio .topbar .code-link{display:none}
+ .piggy-studio .topbar nav{gap:16px}
+ .piggy-studio .topbar nav>button{font-size:11px}
+ .piggy-studio .brand{font-size:23px}.piggy-studio .piggy-mark{width:28px;height:28px}
+ .piggy-studio .demo-badge{font-size:11px}
+ #arena.intuitive-arena{grid-template-columns:minmax(0,1fr) 310px;padding:8px 0 8px;gap:25px}
+ #arena .stage-heading{display:none}
+ #arena .jackpot-stage{display:block}
+ #arena .countdown-arena{height:100%;grid-template-rows:auto minmax(100px,1fr) auto auto;gap:4px}
+ #arena .quiet-label,#arena .timer-caption{font-size:11px;gap:4px}
+ #arena .quiet-label .ui-icon,#arena .timer-caption .ui-icon{width:14px;height:14px}
+ #arena .round-status{gap:12px}
+ #arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{font-size:34px;margin-top:4px;gap:3px 6px}
+ #arena .pot-amount[data-usd-available=true]>.sol-equivalent{font-size:11px}
+ #arena .pot-amount .currency{font-size:11px}
+ #arena .pot-caption{display:none}
+ #arena .countdown{font-size:24px;margin-top:4px}
+ #arena .countdown-meter{margin-top:5px}
+ #arena .leader-group{gap:5px}
+ #arena .leader-label{font-size:11px}
+ #arena .leader-chip>strong{font-size:11px}
+ #arena .leader-crown{width:14px;height:14px}
+ #arena .leader-avatar{display:none}
+ #arena .key-loot{padding:4px 10px;border-radius:10px;gap:9px}
+ #arena .reward-key{width:21px;height:21px}
+ #arena .loot-label{font-size:11px}
+ #arena .loot-label small{display:none}
+ #arena .loot-amount,#arena .loot-amount.is-precise{font-size:16px}
+ #arena .loot-amount>.sol-equivalent{display:none}
+ #arena .loot-amount[data-usd-available=false]>.sol-equivalent{display:inline-flex;font-size:12px}
+ #arena .personal-rewards{gap:10px}
+ #arena .key-loot[data-wallet-known=false] .loot-amount{display:none}
+ #arena .loot-claim{min-height:44px;min-width:65px;gap:4px;padding:5px 0 5px 8px;font-size:11px}
+ #arena .loot-claim .ui-icon{width:13px;height:13px}
+ #arena .purchase-panel{gap:8px;justify-content:center}
+ #arena .play-ticket{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;padding:12px 14px;border-radius:14px}
+ #arena .panel-heading{grid-column:1/-1;gap:9px}
+ #arena .ticket-icon{height:28px;width:28px;border-radius:8px}.ticket-icon .ui-icon{height:17px;width:17px}
+ #arena .panel-heading h2{font-size:20px}
+ #arena .panel-heading p{font-size:11px;margin-top:2px}
+ #arena .quantity-section{grid-column:1;grid-row:2}
+ #arena .quantity-label,#arena .quantity-presets{display:none}
+ #arena .quantity-control{height:45px}
+ #arena .quantity-control button{min-width:30px;width:30px;height:43px;font-size:22px}
+ #arena .quantity-control input{font-size:17px}
+ #arena .quantity-unit{font-size:11px;padding-right:5px}
+ #arena .purchase-summary{grid-column:2;grid-row:2;justify-content:flex-end;align-items:center}
+ #arena .entry-cost{align-items:flex-end}
+ #arena .entry-cost>span:first-child{display:none}
+ #arena .entry-cost>.usd-equivalent{font-size:23px;letter-spacing:-.6px}
+ #arena .entry-cost>.sol-equivalent{font-size:11px}
+ #arena .entry-cost>.sol-equivalent small{font-size:11px}
+ #arena .time-preview{display:none}
+ #arena .buy-action{grid-column:1/-1;grid-row:3;gap:3px}
+ #arena #buy-button{min-height:45px;padding:10px 13px;font-size:15px}
+ #arena #buy-button .buy-extra-cost{font-size:11px}
+ #arena #preview-lead-result{display:none}
+ #arena .purchase-footnote{font-size:11px;line-height:1.2}
+ #arena .your-position{grid-column:1;grid-row:4;border:0;padding:0;align-self:center}
+ #arena .position-values{grid-template-columns:auto auto;gap:8px}
+ #arena .position-values>div>span{font-size:11px}.position-values .ui-icon{display:none}
+ #arena .position-values strong{font-size:12px;gap:3px}
+ #arena .ticket-bottom{grid-column:2;grid-row:4;justify-content:flex-end}
+ #arena .price-rise{display:none}
+ #arena .mode-button{min-height:38px;font-size:11px;max-width:120px}
+ #arena .mode-button strong{font-size:11px}
+ #arena .arena-token-note{display:none}
+ #arena .holder-ticket{display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center;padding:9px 12px;border-radius:12px}
+ #arena .holder-heading{gap:8px}
+ #arena .holder-heading>img{width:25px;height:25px}
+ #arena .holder-heading h2{font-size:15px;letter-spacing:-.4px}
+ #arena .holder-heading p{font-size:11px;line-height:1.3;margin-top:3px}
+ #arena .holder-bottom{grid-column:2;grid-row:1/3}
+ #arena .holder-money{display:none}
+ #arena .holder-claim{min-height:44px;padding:5px 0;font-size:11px;gap:4px}
+ #arena .holder-claim .ui-icon{width:13px;height:13px}
+ #arena .get-piggy{grid-column:1;grid-row:2;min-height:20px;border:0;padding:0;margin-left:33px;font-size:11px}
+ #arena .get-piggy .ui-icon{width:12px;height:12px}
+ .piggy-studio .activity-row{font-size:11px}.piggy-studio .activity-row time{display:none}
+}
+@media(orientation:landscape) and (max-width:600px){
+ #app.piggy-studio{--kb-header-size:42px;--kb-footer-size:0px;--kb-inline-space:12px}
+ .piggy-studio .topbar{gap:8px}.piggy-studio .brand{font-size:20px}.piggy-studio .piggy-mark{width:24px;height:24px}
+ .piggy-studio .demo-badge{display:none}
+ .piggy-studio .topbar nav{gap:8px}
+ .piggy-studio .topbar nav>button{font-size:11px;min-height:40px}
+ .piggy-studio .topbar .help-button span,.piggy-studio .topbar .reward-word,.piggy-studio #hud-rewards{display:none}
+ .piggy-studio .topbar .wallet-button{padding:7px 10px;max-width:105px}
+ .piggy-studio .wallet-button svg{display:none}
+ #arena.intuitive-arena{grid-template-columns:minmax(0,1fr) minmax(210px,1fr);gap:12px;padding-block:6px}
+ #arena .countdown-arena{grid-template-rows:auto minmax(94px,1fr) auto auto;gap:3px}
+ #arena .round-status{gap:7px;grid-template-columns:minmax(0,1fr) auto}
+ #arena .quiet-label,#arena .timer-caption{font-size:11px;gap:3px}
+ #arena .quiet-label .ui-icon,#arena .timer-caption .ui-icon{width:12px;height:12px}
+ #arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{font-size:25px;gap:2px 4px}
+ #arena .pot-amount[data-usd-available=true]>.sol-equivalent{font-size:11px}
+ #arena .pot-amount .currency{font-size:11px}
+ #arena .countdown{font-size:19px;letter-spacing:-.5px}
+ #arena .leader-label{display:none}
+ #arena .key-loot{padding:3px 6px;gap:5px}
+ #arena .reward-key{display:none}
+ #arena .personal-rewards{display:block}
+ #arena .loot-label{font-size:11px}
+ #arena .loot-amount,#arena .loot-amount.is-precise{font-size:14px;margin-top:3px}
+ #arena .loot-claim{min-width:55px;font-size:11px;gap:4px}
+ #arena .play-ticket{padding:9px 10px;gap:6px 8px;border-radius:12px}
+ #arena .panel-heading p{display:none}
+ #arena .panel-heading h2{font-size:17px}.ticket-icon .ui-icon{width:15px;height:15px}
+ #arena .ticket-icon{height:23px;width:23px;border-radius:7px}
+ #arena .quantity-control button{min-width:27px;width:27px;font-size:21px}
+ #arena .quantity-control input{font-size:15px;min-width:16px}
+ #arena .quantity-unit{display:none}
+ #arena .entry-cost>.usd-equivalent{font-size:21px}
+ #arena .entry-cost>.sol-equivalent{font-size:11px}
+ #arena .your-position{display:none}
+ #arena .ticket-bottom{grid-column:1/-1;justify-content:space-between}
+ #arena .price-rise{display:flex;font-size:11px;max-width:97px}
+ #arena .price-rise .ui-icon{width:13px;height:13px}
+ #arena .mode-button{min-height:28px;max-width:92px;font-size:11px}
+ #arena .mode-button strong{font-size:11px}
+ #arena .holder-ticket{padding:7px 9px;gap:2px 4px}
+ #arena .holder-heading h2{font-size:13px}.holder-heading p{font-size:11px}
+ #arena .holder-heading>img{display:none}
+ #arena .get-piggy{margin-left:0;font-size:11px}
+ #arena .holder-claim{font-size:11px}
+ .piggy-studio .live-footer{display:none}
+}
+@media(prefers-reduced-motion:reduce){#arena .arena-feedback{backdrop-filter:none}}
+/* Compact layouts remove redundant detail before reducing readable type or targets. */
+#arena .quantity-presets button{min-height:44px;height:44px}
+#arena .mode-button,#arena .get-piggy{min-height:44px}
+@media(max-width:999px) and (orientation:portrait){
+ .piggy-studio .topbar .help-button,.piggy-studio .topbar .rewards-button{min-width:44px;width:44px}
+ .piggy-studio .topbar nav{gap:5px}
+ #arena .quantity-control button{width:44px;min-width:44px}
+ #arena .quantity-unit{display:none}
+ #arena .get-piggy{min-height:44px}
+ #arena .holder-ticket{min-height:76px}
+ #arena .holder-heading p{white-space:normal}
+}
+@media(max-width:360px) and (orientation:portrait){
+ .piggy-studio .topbar .wallet-button{min-width:44px;width:44px;padding:9px}
+ .piggy-studio .wallet-button>span{display:none}
+ .piggy-studio .wallet-button svg{display:block}
+ #arena .holder-heading h2{font-size:15px}
+ #arena .holder-heading p{max-width:22ch}
+}
+@media(orientation:landscape) and (max-height:600px){
+ #arena .quantity-control button{min-width:44px;width:44px;min-height:44px}
+ #arena .quantity-unit{display:none}
+ #arena .get-piggy,#arena .mode-button{min-height:44px}
+ .piggy-studio .topbar nav>button{min-width:44px;min-height:44px}
+}
+#arena .entry-cost{border:0;background:none;padding:0;min-height:44px;cursor:pointer}
+#arena .entry-cost:hover>.usd-equivalent{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+#mode-dialog .feed-cost-review{margin:22px 0;border-block:1px solid #ffffff30;padding:14px 0}
+#mode-dialog .feed-cost-review>div{display:flex;justify-content:space-between;gap:22px;align-items:baseline;margin-block:9px;font-size:14px;line-height:1.4}
+#mode-dialog .feed-cost-review dt{color:#c6b7d1}#mode-dialog .feed-cost-review dd{text-align:right;margin:0;overflow-wrap:anywhere}
+#mode-dialog .feed-cost-review small{display:block;color:#b9a5c7;font-size:12px;margin-top:10px}
+/* Screen-reader text must never take visual space in the arena. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+#arena button{text-transform:none;letter-spacing:0}
+#arena .play-ticket .time-preview>strong,#arena .play-ticket .position-values strong,#arena .play-ticket .position-values strong>span{color:var(--pig-ink)}
+#arena .play-ticket #preview-share-after{color:#8d3555}
+#arena .loot-claim{font-weight:500;text-transform:none;letter-spacing:0}
+/* Keep the connected-wallet cost state inside the viewport too. */
+#arena .play-ticket{gap:12px;padding:20px 22px 15px}
+#arena .quantity-row{flex-direction:row;gap:8px}
+#arena .quantity-control{flex:1;min-width:0}
+#arena .quantity-presets{width:94px;flex:none;gap:4px;height:49px}
+#arena .quantity-presets button{width:45px;min-width:44px;flex:none}
+#arena .quantity-presets [data-quantity="1"],#arena .quantity-presets #max-keys{display:none}
+#arena .holder-ticket{gap:9px;padding:15px 20px}
+#arena .get-piggy{padding-top:4px}
+.piggy-studio .rewards-button:has(#hud-rewards[data-money-state="unknown"]) #hud-rewards{display:none}
+@media(min-width:1000px) and (max-height:800px){
+ #arena .play-ticket{gap:9px;padding:16px 19px 12px}
+ #arena .holder-ticket{padding:12px 18px;gap:6px}
+ #arena .holder-heading h2{font-size:18px}
+}
+@media(max-width:999px) and (orientation:portrait){
+ #arena .play-ticket{gap:9px 13px;padding:14px 16px 11px}
+ #arena .quantity-presets{display:none}
+ #arena .holder-ticket{padding:9px 13px;gap:2px 8px}
+}
+@media(orientation:portrait) and (max-height:680px){
+ #arena .play-ticket{padding:9px 11px 7px;gap:6px 10px}
+ #arena .holder-ticket{padding:6px 10px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ #arena .play-ticket{padding:10px 13px;gap:6px 10px}
+ #arena .quantity-presets{display:none}
+ #arena .holder-ticket{padding:8px 11px;gap:2px 8px}
+}
+@media(orientation:landscape) and (max-width:600px){
+ #arena .play-ticket{padding:8px 10px;gap:5px 8px}
+ #arena .holder-ticket{padding:5px 9px}
+}
+/* Reset obsolete two-column control-grid tracks from the original table layout. */
+#arena .purchase-panel{display:flex;flex-direction:column;grid-template-columns:none;grid-template-rows:none;grid-template-areas:none;grid-auto-rows:auto;align-items:stretch;max-height:none}
+#arena .play-ticket,#arena .holder-ticket{flex:none;width:100%;max-width:none;height:auto;max-height:none;grid-area:auto;min-width:0}
+#arena .play-ticket{grid-template-areas:none;grid-auto-rows:auto}
+#arena .sound-button{position:static;inset:auto;transform:none}
+.piggy-studio .help-button::after{content:none!important}
+@media(max-width:999px) and (orientation:portrait){
+ .piggy-studio .topbar nav>.code-link,.piggy-studio .topbar nav>.story-link,.piggy-studio .topbar nav>.history-button{display:none}
+ .piggy-studio .topbar nav>.help-button span,.piggy-studio .topbar nav>.rewards-button .reward-word,.piggy-studio .topbar nav>.rewards-button .claim-word{display:none}
+ #arena .purchase-panel{justify-content:flex-start;align-self:stretch;gap:8px}
+ #arena .play-ticket{grid-template-rows:auto auto auto auto}
+ #arena .holder-ticket{grid-template-rows:auto auto;grid-template-areas:none}
+}
+@media(orientation:landscape) and (max-height:600px){
+ .piggy-studio .topbar nav>.code-link,.piggy-studio .topbar nav>.story-link,.piggy-studio .topbar nav>.history-button{display:none}
+ #arena .play-ticket{grid-template-rows:auto auto auto auto}
+ #arena .holder-ticket{grid-template-rows:auto auto;grid-template-areas:none}
+}
+#app.piggy-studio{width:100%;max-width:100%;min-width:0}
+#arena.intuitive-arena{min-width:0;justify-self:stretch;margin-inline:auto}
+#arena #buy-button,#arena #buy-button.has-cost-review{flex-direction:row;flex-wrap:wrap;gap:3px 10px}
+#arena #buy-label{flex:1;order:1;text-align:left;min-width:0}
+#arena #buy-button>.ui-icon{order:2;flex:none}
+#arena #buy-button .buy-extra-cost{order:3;flex:1 1 100%;text-align:left}
+@media(orientation:portrait) and (max-height:680px){
+ #arena .play-ticket{position:relative;padding:9px 11px;gap:6px 10px;grid-template-rows:auto auto auto}
+ #arena .panel-heading{padding-right:55px;min-height:35px}
+ #arena .panel-heading p{display:block;font-size:11px}
+ #arena .ticket-bottom{position:absolute;right:11px;top:6px;display:block;min-height:44px}
+ #arena .ticket-bottom .price-rise{display:none}
+ #arena .ticket-bottom .mode-button{min-height:44px}
+ #arena .purchase-footnote{display:none}
+ #arena .holder-ticket{min-height:70px}
+}
+#arena .key-loot[data-wallet-known=false] .loot-amount{display:none}
+@media(max-width:999px) and (orientation:portrait){
+ #arena .jackpot-stage{display:block;height:100%}
+ #arena .countdown-arena{height:100%}
+ #arena .arena-feedback{bottom:0;padding:6px 10px;max-width:90%}
+ #arena .arena-feedback__detail{display:none}
+ #arena .arena-feedback__headline{font-size:12px}
+ #arena .arena-feedback__changes{font-size:11px}
+}
+/* Short laptop windows still prioritize the pig over repeated headings. */
+@media(min-width:1000px) and (max-height:800px){
+ #arena .jackpot-stage{grid-template-rows:minmax(0,1fr)}
+ #arena .stage-heading{display:none}
+ #arena .countdown-arena{height:100%;gap:7px}
+ #arena .purchase-panel{justify-content:flex-start;gap:12px}
+ #arena .play-ticket{padding:14px 18px 11px;gap:8px}
+ #arena .panel-heading{gap:9px}
+ #arena .ticket-icon{width:35px;height:35px;border-radius:10px}
+ #arena .ticket-icon .ui-icon{width:21px;height:21px}
+ #arena .panel-heading h2{font-size:23px}
+ #arena .panel-heading p{font-size:12px;margin-top:3px}
+ #arena .quantity-label{display:none}
+ #arena .quantity-control{height:46px}
+ #arena .quantity-control button{height:44px}
+ #arena .entry-cost>.usd-equivalent{font-size:29px}
+ #arena .time-preview>small{display:none}
+ #arena .buy-action{gap:4px}
+ #arena #preview-lead-result,#arena .purchase-footnote,#arena .arena-token-note{display:none}
+ #arena .your-position{padding-top:8px}
+ #arena .position-values>div{gap:3px}
+ #arena .position-values strong{font-size:15px}
+ #arena .holder-ticket{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:0 10px;padding:10px 16px}
+ #arena .holder-heading{grid-column:1;grid-row:1/3;gap:9px}
+ #arena .holder-heading>img{width:31px;height:31px}
+ #arena .holder-heading h2{font-size:18px}
+ #arena .holder-heading p{font-size:11px;line-height:1.4}
+ #arena .holder-bottom{grid-column:2;grid-row:1;justify-content:flex-end}
+ #arena .holder-money{display:none}
+ #arena .holder-claim{min-height:44px;padding:0;font-size:12px}
+ #arena .get-piggy{grid-column:2;grid-row:2;min-height:44px;border:0;padding:0;justify-content:flex-end;font-size:11px}
+}
+#arena .holder-money[data-empty=true] #holder-earn-amount,#arena .holder-money[data-empty=true] #holder-short-status{display:none}
+#arena .holder-money:has(#holder-earn-amount[data-money-state=unknown]) #holder-earn-amount{display:none}
+#arena .pot-caption{display:block;font-size:12px}
+@media(max-width:999px){#arena .pot-caption{font-size:11px;margin-top:3px}}
+#arena .key-loot{height:auto;min-height:0;max-height:none}
+#arena .holder-heading:hover h2{color:var(--pig-pink)}
+@media(max-width:999px) and (orientation:portrait), (orientation:landscape) and (max-height:600px){
+ #arena .holder-ticket{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto;min-height:64px;align-items:center}
+ #arena .holder-heading{grid-column:1;grid-row:1;min-height:44px}
+ #arena .holder-heading h2::after{content:' ↗';font:12px var(--font-control);color:var(--pig-pink)}
+ #arena .holder-bottom{grid-column:2;grid-row:1}
+ #arena .get-piggy{display:none}
+}
+@media(orientation:portrait) and (max-height:680px){
+ #arena .key-loot{display:none}
+ #arena .countdown-arena{grid-template-rows:auto minmax(95px,1fr) auto;gap:4px}
+ #arena .ticket-bottom{grid-area:auto}
+ #arena .holder-ticket{min-height:62px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ #arena .play-ticket{position:relative}
+ #arena .panel-heading{padding-right:48px;min-height:33px}
+ #arena .ticket-bottom{position:absolute;grid-area:auto;top:4px;right:12px;min-height:44px}
+ #arena .ticket-bottom .price-rise{display:none}
+ #arena .ticket-bottom .mode-button{min-height:44px}
+ #arena .purchase-footnote{display:none}
+}
+#arena .holder-heading{min-height:44px}
+#arena .quote-details-trigger{min-height:44px;min-width:44px}
+#arena .mode-button{min-width:44px}
+@media(max-width:999px) and (orientation:portrait) and (min-height:681px){
+ #arena .loot-amount>.sol-equivalent{display:inline-flex;font-size:11px}
+}
+@media(max-width:999px) and (orientation:portrait){
+ #arena .stage-heading{display:none}
+}
+@media(orientation:landscape) and (max-height:600px){
+ #arena .loot-amount>.sol-equivalent{display:inline-flex;font-size:11px}
+ .round-over #arena #purchase-outcome{display:none}
+ .piggy-studio .wallet-button svg{display:block}
+}
+@media(orientation:landscape) and (max-width:600px){
+ #arena .purchase-panel{gap:2px}
+ #arena .play-ticket{padding:3px 10px;gap:4px}
+ #arena .panel-heading{min-height:44px}
+ #arena .quantity-section{grid-column:1/-1;grid-row:2}
+ #arena .purchase-summary{grid-column:1/-1;grid-row:3}
+ #arena .entry-cost{flex-direction:row;align-items:baseline;gap:7px}
+ #arena .buy-action{grid-row:4}
+}
+/* A single event line leaves the pig and its coins visible. */
+#app #arena .arena-feedback,#app #arena .arena-feedback.is-visible{left:50%;right:auto;top:auto;bottom:6px;transform:translateX(-50%);width:max-content;max-width:94%;padding:7px 12px;border:1px solid #d48ba45e;border-radius:10px;background:#271532e8;text-align:center}
+#app #arena .arena-feedback::before{content:none}
+#app #arena .arena-feedback__headline{font-size:13px;line-height:1.3;font-style:normal}
+#app #arena .arena-feedback__detail,#app #arena .arena-feedback__changes{display:none}
+#app #arena .arena-feedback[data-tone=win] .arena-feedback__headline{font-size:16px;color:var(--pig-gold)}
+@media(max-width:999px){#app #arena .arena-feedback__headline,#app #arena .arena-feedback[data-tone=win] .arena-feedback__headline{font-size:12px}}

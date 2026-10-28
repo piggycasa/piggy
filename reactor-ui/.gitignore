@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vercel/
+.DS_Store
+.openai/local/
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.tar.gz
+qa-screen.html

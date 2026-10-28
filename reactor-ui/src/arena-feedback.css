@@ -1,0 +1,23 @@
+/* Game-state feedback uses the same plain score field as the Konterball port. */
+.arena-feedback {
+  position: absolute;
+  z-index: 9;
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  text-align: center;
+  transition: opacity 180ms, transform 180ms;
+}
+.arena-feedback.is-visible { opacity: 1; transform: translate(-50%, 0); }
+.arena-feedback::before { content: ''; position: absolute; z-index: -1; }
+.arena-feedback__headline { line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
+.arena-feedback__detail { line-height: 1.5; font-variant-numeric: tabular-nums; }
+.arena-feedback__changes { display: flex; justify-content: center; flex-wrap: wrap; gap: 3px 16px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.arena-feedback__changes[hidden] { display: none; }
+#reactor-stage.feedback-active .leader-group,
+#reactor-stage.feedback-active .state-label { opacity: 0; visibility: hidden; }
+.arena-feedback-impact { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .arena-feedback { transition: none; transform: translate(-50%, 0); }
+}
+.arena-feedback[data-reduced='true'] { transition: none; transform: translate(-50%, 0); }

@@ -8,7 +8,7 @@
   "binarySha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65",
   "binaryUrl": "/verification/piggy-mainnet.so",
   "sourceRepository": "https://github.com/piggycasa/piggy",
-  "sourceCommit": null,
+  "sourceCommit": "f7ba440e8667dd920d89bf6a8fba0158c3887e68",
   "recordedSourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
   "observedUpgradeAuthority": "AaD3ws5nVeUntDpmciiqx5NxYQKpN6idm59j6SJ7SZdX",
   "observedAt": "2026-10-28T01:09:33Z",
@@ -27,5 +27,10 @@
   "independentSourceBuildVerified": false,
   "independentSecurityAudit": false,
   "lotteryEnabled": false,
-  "sourceAccess": "public"
+  "sourceAccess": "public",
+  "sourcePath": "program",
+  "sourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
+  "gameVersion": "1793081200001",
+  "gameAccount": "FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm",
+  "piggyMint": "BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA"
 }

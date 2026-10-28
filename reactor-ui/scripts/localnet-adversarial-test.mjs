@@ -1,0 +1,42 @@
+/** Destructive only to newly generated local test versions, never any existing game. */
+import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';
+import { Keypair,SystemProgram,Transaction,ComputeBudgetProgram,sendAndConfirmTransaction } from '@solana/web3.js';
+import { getOrCreateAssociatedTokenAccount,createTransferInstruction } from '@solana/spl-token';
+import * as sdk from '../src/solana-instructions.mjs';
+import { hexToBytes } from '../src/solana-holder.mjs';
+import * as rt from './localnet-runtime.mjs';import { LOCAL } from './localnet-common.mjs';
+const results=[],signatures=[],confirmedRejections=[];function check(name,fn){fn();results.push(name);console.log('PASS '+name);}async function step(name,fn){const result=await fn();if(result?.signature)signatures.push(result.signature);results.push(name);console.log('PASS '+name);return result;}
+const ctx=await rt.makeContext({version:Date.now(),initialSeconds:3600,incrementSeconds:1,prefund:true,isolated:true});
+const round=async(n=1)=>rt.readAccount(ctx,sdk.roundAddress(ctx.programId,n,ctx.version),sdk.decodeRound);
+const player=async(id,n=1)=>rt.readAccount(ctx,sdk.playerAddress(ctx.programId,ctx.wallets[id].publicKey,n,ctx.version),sdk.decodePlayer);
+const config=()=>rt.readAccount(ctx,sdk.holderConfigAddress(ctx.programId,ctx.game),sdk.decodeHolderConfig);
+async function invariant(epoch,destination,wallet){const h=await config(),epAddress=sdk.holderEpochAddress(ctx.programId,sdk.holderConfigAddress(ctx.programId,ctx.game),epoch),ep=await rt.readAccount(ctx,epAddress,sdk.decodeHolderEpoch),receipt=await ctx.connection.getAccountInfo(sdk.holderReceiptAddress(ctx.programId,epAddress,wallet));return sdk.serializeChain({reserved:h.reserved_amount,vault:await rt.tokenAmount(ctx,h.vault),claimed:ep.claimed_amount,destination:await rt.tokenAmount(ctx,destination),receipt:receipt?{owner:receipt.owner.toBase58(),data:receipt.data.toString('hex'),lamports:receipt.lamports}:null});}
+async function rejected(name,instructions,signers,epoch,destination,wallet){const before=await invariant(epoch,destination,wallet);let failure;try{await sendAndConfirmTransaction(ctx.connection,new Transaction().add(ComputeBudgetProgram.setComputeUnitLimit({units:1300000}),...instructions),signers,{skipPreflight:true,commitment:'confirmed'});}catch(error){failure=error;}assert(failure?.signature,'Adversarial transaction must have been submitted and confirmed, rather than only rejected in preflight.');const status=(await ctx.connection.getSignatureStatuses([failure.signature])).value[0];assert(status?.err,'Confirmed transaction should contain a program rejection.');confirmedRejections.push({name,signature:failure.signature,error:status.err});assert.equal(await invariant(epoch,destination,wallet),before,'Failed instruction mutated balances/reserves/receipt');results.push(name);console.log('PASS '+name);}
+check('prefunded game / round / pot PDAs initialize and decode V2',()=>assert.equal(ctx.game.toBase58(),sdk.gameAddress(ctx.programId,ctx.version).toBase58()));
+for(const [i,mode]of Object.keys(sdk.TEAMS).entries()){await step('real WSOL purchase '+mode,()=>rt.feed(ctx,{actor:i?'npc_'+['','fox','orbit','void'][i]:'you',count:1,mode,referral:i===1?'you':undefined}));const r=await round();check(mode+' team amount recorded',()=>assert(r.accum_sol_by_team[mode]>0n));}
+const firstBuyer=await player('you');check('prefunded player initialized and first tiny curve price preserved',()=>assert.equal(firstBuyer.accum_sol_added,75001n));
+const beforeRewards=sdk.claimableGame(await player('you'),await round());check('old shares earned subsequent feeds',()=>assert(beforeRewards.keys>0n));
+await step('remembered referral on next purchase',()=>rt.feed(ctx,{actor:'npc_fox',count:1,mode:'snek'}));const referred=await player('npc_fox'),affiliate=await player('you');check('referral identity persisted',()=>{assert.equal(referred.last_affiliate_pk,ctx.wallets.you.publicKey.toBase58());assert(affiliate.accum_aff>0n);});
+await assert.rejects(rt.endRound(ctx));results.push('early round settlement rejected by deployed-program preflight');
+await step('active game reward withdrawal unwraps native SOL',()=>rt.claimGame(ctx,{actor:'you'}));
+const first=ctx.epochs[0],firstEntry=first.records.find(r=>r.wallet===ctx.wallets.you.publicKey.toBase58());const you=ctx.wallets.you,fox=ctx.wallets.npc_fox;
+const destination=(await getOrCreateAssociatedTokenAccount(ctx.connection,ctx.payer,sdk.NATIVE_MINT,you.publicKey)).address;
+const claim=(overrides={})=>sdk.claimHolderInstruction({programId:ctx.programId,wallet:you.publicKey,version:ctx.version,epoch:first.epoch,amount:firstEntry.amount,proof:firstEntry.proof.map(hexToBytes),destination,...overrides});
+const noSigner=claim();noSigner.keys[0].isSigner=false;await rejected('missing holder wallet signature rejected',[noSigner],[ctx.payer],first.epoch,destination,you.publicKey);
+await rejected('forged holder amount rolls back', [claim({amount:BigInt(firstEntry.amount)+1n})],[you],first.epoch,destination,you.publicKey);
+const forged=firstEntry.proof.map(hexToBytes);forged[0][0]^=1;await rejected('forged holder proof rolls back',[claim({proof:forged})],[you],first.epoch,destination,you.publicKey);
+const foxDest=(await getOrCreateAssociatedTokenAccount(ctx.connection,ctx.payer,sdk.NATIVE_MINT,fox.publicKey)).address;
+await rejected('another signing wallet cannot take entitlement',[claim({wallet:fox.publicKey,destination:foxDest})],[fox],first.epoch,foxDest,fox.publicKey);
+await rejected('wrong destination owner rejected',[claim({destination:foxDest})],[you],first.epoch,foxDest,you.publicKey);
+const wrongMint=(await getOrCreateAssociatedTokenAccount(ctx.connection,ctx.payer,ctx.piggyMint,you.publicKey)).address;
+await rejected('wrong destination mint rejected',[claim({destination:wrongMint})],[you],first.epoch,wrongMint,you.publicKey);
+const receipt=sdk.holderReceiptAddress(ctx.programId,sdk.holderEpochAddress(ctx.programId,sdk.holderConfigAddress(ctx.programId,ctx.game),first.epoch),you.publicKey);await step('one-lamport-prefunded receipt allows real holder claim',async()=>({signature:await rt.send(ctx,[SystemProgram.transfer({fromPubkey:you.publicKey,toPubkey:receipt,lamports:1}),claim()],[you])}));
+await rejected('duplicate claim leaves balances and epoch accounting unchanged',[claim()],[you],first.epoch,destination,you.publicKey);
+const h=await config();await rejected('unauthorized publisher cannot reserve fees',[sdk.publishHolderEpochInstruction({programId:ctx.programId,publisher:fox.publicKey,version:ctx.version,epoch:h.next_epoch,root:hexToBytes(first.root),totalAmount:1n,snapshotSlot:ctx.openSnapshot.slot})],[fox],first.epoch,destination,you.publicKey);
+await rejected('already reserved funding cannot be published twice',[sdk.publishHolderEpochInstruction({programId:ctx.programId,publisher:ctx.payer.publicKey,version:ctx.version,epoch:h.next_epoch,root:hexToBytes(first.root),totalAmount:await rt.tokenAmount(ctx,h.vault)+1n,snapshotSlot:ctx.openSnapshot.slot})],[ctx.payer],first.epoch,destination,you.publicKey);
+await rejected('proof bound to another epoch rejected',[claim({epoch:ctx.epochs[1].epoch})],[you],first.epoch,destination,you.publicKey);
+await step('creator can rotate holder publisher',async()=>({signature:await rt.send(ctx,[sdk.setHolderPublisherInstruction({programId:ctx.programId,creator:ctx.payer.publicKey,version:ctx.version,publisher:fox.publicKey})])}));assert.equal((await config()).publisher,fox.publicKey.toBase58());await rt.send(ctx,[sdk.setHolderPublisherInstruction({programId:ctx.programId,creator:ctx.payer.publicKey,version:ctx.version,publisher:ctx.payer.publicKey})]);
+await rejected('unauthorized publisher rotation rejected',[sdk.setHolderPublisherInstruction({programId:ctx.programId,creator:fox.publicKey,version:ctx.version,publisher:fox.publicKey})],[fox],first.epoch,destination,you.publicKey);
+await rejected('unauthorized holder initialization rejected',[sdk.initializeHolderInstruction({programId:ctx.programId,creator:fox.publicKey,version:ctx.version,eligibilityMint:ctx.piggyMint,publisher:fox.publicKey})],[fox],first.epoch,destination,you.publicKey);
+
+const report={ok:true,confirmedRejections:confirmedRejections.length,version:ctx.version.toString(),transactions:confirmedRejections};await fs.writeFile(path.join(LOCAL,'adversarial-report.json'),JSON.stringify(report));console.log(JSON.stringify(report));

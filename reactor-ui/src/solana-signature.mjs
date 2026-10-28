@@ -1,0 +1,5 @@
+/** Small dependency-free base58 codec for confirmed transaction identifiers. */
+const ALPHABET='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+export function base58Encode(input){const bytes=Uint8Array.from(input);let value=0n;for(const byte of bytes)value=value*256n+BigInt(byte);let result='';while(value){result=ALPHABET[Number(value%58n)]+result;value/=58n;}for(const byte of bytes){if(byte!==0)break;result='1'+result;}return result;}
+export function base58Decode(input){if(typeof input!=='string'||input.length<1||input.length>88)throw new TypeError('Invalid base58 identifier.');let value=0n;for(const character of input){const digit=ALPHABET.indexOf(character);if(digit<0)throw new TypeError('Invalid base58 identifier.');value=value*58n+BigInt(digit);}const bytes=[];while(value){bytes.push(Number(value&255n));value>>=8n;}for(const character of input){if(character!=='1')break;bytes.push(0);}return Uint8Array.from(bytes.reverse());}
+export function isTransactionSignature(value){try{return base58Decode(value).length===64;}catch{return false;}}

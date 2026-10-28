@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /><meta name="theme-color" content="#190f28" /><meta name="description" content="Compare PIGGY’s deployed program with its release, read the public source and see who retains control." /><link rel="icon" href="/favicon.svg" type="image/svg+xml" /><title>PIGGY — Code and control</title></head>
+<body>
+  <div class="verification-shell">
+    <header><a class="brand" href="/" aria-label="PIGGY home"><img src="/piggy-mark.svg" alt="" />PIGGY</a><a class="back" href="/">Back to the game</a></header>
+    <main>
+      <div class="verification-intro"><h1>Code and control.</h1><p>Public source. Mainnet addresses. Checks you can run.</p></div>
+      <nav aria-label="Verification topics"><button data-tab="release" aria-current="page">Check the release</button><button data-tab="control">Who has control?</button><button data-tab="source">Source &amp; steps</button></nav>
+      <div class="panels">
+        <section id="release-panel" data-panel="release" aria-labelledby="release-heading">
+          <div class="release-copy"><h2 id="release-heading">Compare the release with Solana.</h2><p>Read the mainnet program without connecting a wallet. The check compares every executable byte with the published release and reads its current upgrade authority.</p><button class="check-button" id="check-program">Check live program</button><div class="check-result" aria-live="polite" aria-atomic="true"><strong id="check-status">Not checked in this browser yet.</strong><p id="check-detail">This checks matching bytes. It is not a security audit or an independently reproduced source build.</p></div></div>
+          <dl class="release-facts"><div><dt>Mainnet program</dt><dd><a href="https://explorer.solana.com/address/3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK" target="_blank" rel="noopener noreferrer">3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK</a></dd></div><div><dt>$PIGGY token mint</dt><dd><a href="https://explorer.solana.com/address/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA" target="_blank" rel="noopener noreferrer">BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA</a></dd></div><div><dt>Game account · version 1793081200001</dt><dd><a href="https://explorer.solana.com/address/FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm" target="_blank" rel="noopener noreferrer">FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm</a></dd></div><div><dt>Expected SHA-256</dt><dd>7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65</dd></div><div><dt>Current upgrade authority <span id="authority-state">— not checked</span></dt><dd id="live-authority">Run the check to read this from Solana.</dd></div><div><dt>Independent verification</dt><dd>Source access: public.<br />Independent source build: not verified.<br />Security audit: none published.</dd></div></dl>
+        </section>
+        <section id="control-panel" data-panel="control" aria-labelledby="control-heading" hidden>
+          <h2 id="control-heading">These powers remain under the current code.</h2><div class="control-list">
+            <article><h3>The recorded release retains an upgrade key.</h3><p>At the recorded release, one upgrade key could replace the program code, with no enforced timelock. It was not immutable. The live code check reports whether that key is still retained, changed or absent.</p><a href="https://explorer.solana.com/address/AaD3ws5nVeUntDpmciiqx5NxYQKpN6idm59j6SJ7SZdX" target="_blank" rel="noopener noreferrer">Inspect the recorded upgrade authority</a></article>
+            <article><h3>Token-holder allocations trust a publisher.</h3><p>The program checks funds, Merkle proofs and repeat claims. It does not verify historical token ownership or the fairness of the publisher’s allocations. A malicious publisher could allocate unreserved holder funds to itself. The game creator can replace this publisher.</p><a href="/proofs/index.json" target="_blank" rel="noopener noreferrer">Inspect published reward epochs</a></article>
+            <article><h3>Game outcomes follow transaction order.</h3><p>Under the current code, anyone can settle an expired round. The last eligible buyer wins the jackpot; there is no enabled random lottery. Bots, transaction ordering and network congestion can affect who gets the final buy.</p></article>
+            <article><h3>Existing claims have defined protections.</h3><p>Under the current code, published holder epochs cannot be rewritten and reserved claims are wallet-bound. The treasury can withdraw its accrued community allocation. These limits do not stop an upgrade authority replacing the code.</p></article>
+          </div>
+        </section>
+        <section id="source-panel" data-panel="source" aria-labelledby="source-heading" hidden>
+          <h2 id="source-heading">Read it. Check it yourself.</h2>
+          <div class="source-columns"><div>
+            <p>PIGGY’s program, interface and operator code are public. The recorded Rust source digest matches the inputs used for this release. A clean independent source-to-binary build has not been verified.</p>
+            <div class="source-links"><a href="https://github.com/piggycasa/piggy" target="_blank" rel="noopener noreferrer">PIGGY source on GitHub ↗</a><a id="program-source-link" href="https://github.com/piggycasa/piggy/tree/f7ba440e8667dd920d89bf6a8fba0158c3887e68/program" target="_blank" rel="noopener noreferrer">Program source for this release ↗</a><a href="https://github.com/piggycasa/piggy/blob/main/docs/VERIFICATION.md" target="_blank" rel="noopener noreferrer">Full verification instructions ↗</a><a href="/verification/release.json" target="_blank" rel="noopener noreferrer">Release manifest and hashes ↗</a><a href="/verification/piggy-mainnet.so" download>Download published executable (.so)</a></div>
+          </div><div>
+            <ol class="verify-steps"><li><strong>Check the live release.</strong><p>Use “Check live program” on the first tab. No wallet is needed. It reads finalized mainnet accounts and compares the executable SHA-256.</p></li><li><strong>Use your own RPC.</strong><p>Clone the public repo and run its read-only checker. It checks the cluster, loader, ProgramData, complete executable and upgrade authority.</p><pre><code>git clone https://github.com/piggycasa/piggy.git
+cd piggy
+node tools/verify-release.mjs --rpc YOUR_MAINNET_RPC_URL</code></pre></li><li><strong>Rebuild the source.</strong><p>The pinned source, Cargo.lock and recorded toolchain are published. Build with <code>cargo build-sbf --manifest-path program/Cargo.toml --sbf-out-dir target/deploy --no-default-features -- --locked</code>, then compare hashes. A mismatch is a failed reproduction; don’t treat the source as independently verified.</p></li></ol>
+            <p class="note">Recorded toolchain: cargo-build-sbf 4.0.0, platform-tools 1.53, rustc 1.89.0. Source commit: <a id="source-commit-link" href="https://github.com/piggycasa/piggy/commit/f7ba440e8667dd920d89bf6a8fba0158c3887e68">f7ba440e8667dd920d89bf6a8fba0158c3887e68</a>.</p>
+            <div class="source-links"><a href="https://solana.com/docs/programs/verified-builds" target="_blank" rel="noopener noreferrer">Solana’s verified-build process ↗</a><a href="https://verify.osec.io/status/3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK" target="_blank" rel="noopener noreferrer">External build-verification status ↗</a><a href="/asset-credits.html" target="_blank" rel="noopener noreferrer">Original code and artwork credits ↗</a></div>
+            <p class="note">Public source and matching release bytes are not an audit. The upgrade key and publisher powers described on the controls tab still exist.</p>
+          </div></div>
+        </section>
+      </div>
+    </main>
+    <footer><span>No wallet connection. No transaction. Read-only checks.</span><a href="/fomo3d/">The Fomo3D story</a></footer>
+  </div>
+  <script type="module" src="/src/verify-page.js"></script>
+</body>
+</html>

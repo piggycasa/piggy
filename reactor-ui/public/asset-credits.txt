@@ -1,0 +1,66 @@
+PIGGY — asset credits
+
+Konterball interface and screen transitions
+Project: https://konterball.com/
+Creator: WILD, for Google's WebVR experiment
+Source: https://github.com/madebywild/konterball
+Pinned revision: 1b1a54aec27f36c4337f4206eb35938f530e847a
+License: MIT; exact upstream notice copied to licenses/konterball-MIT.txt.
+Reused/adapted: selected src/stylesheets/base and src/stylesheets/screens
+rules, the staggered screen sequence in src/javascripts/app.js, and
+src/images/icon-arrow.svg.
+The original arrow is bundled unchanged as konterball/back-arrow.svg.
+Changes: PIGGY controls and values, Web Animations screen transitions, free
+replacement fonts, responsive portrait layout, and local game-state integration.
+Original proprietary fonts and commissioned music/sound files are not copied.
+
+Fonts
+Jost — Copyright 2020 The Jost Project Authors.
+https://github.com/indestructible-type/Jost
+Bundled using @fontsource/jost 5.3.0; SIL Open Font License 1.1.
+Exact package notice: licenses/jost-OFL.txt.
+Archivo Black — Copyright 2017 The Archivo Black Project Authors.
+https://github.com/Omnibus-Type/ArchivoBlack
+Bundled using @fontsource/archivo-black 5.3.0; SIL Open Font License 1.1.
+Exact package notice: licenses/archivo-black-OFL.txt.
+
+Piggy Bank Glass
+Creator: tomgeurts
+Creator profile: https://sketchfab.com/tomgeurts
+Original source: https://sketchfab.com/3d-models/piggy-bank-glass-08f40fd84cd74766989c99c2afdd6ab7
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License URL: https://creativecommons.org/licenses/by/4.0/
+Bundled asset: models/piggy-bank-glass.glb
+Changes: The source mesh is retained. Runtime adaptations change the glass color/material and normalize the model's scale, position and orientation for this scene.
+Derived logo assets: piggy-mark.svg and favicon.svg.
+Logo changes: orthographic mesh projection, merged triangle silhouettes,
+simplified vector outlines, and white/yellow recolouring on transparent or
+purple backgrounds. These are adaptations of the same tomgeurts mesh under
+CC BY 4.0, with the creator and original source credited above.
+
+Rendering and physics code
+@pmndrs/vanilla 1.25.0 — MIT, copyright 2023 Poimandres.
+Actual MeshTransmissionMaterial shader by N8Programs, plus the backside/front
+capture algorithm adapted from the official Drei-vanilla example:
+https://github.com/pmndrs/drei-vanilla
+https://github.com/pmndrs/drei-vanilla/blob/main/.storybook/stories/MeshTransmissionMaterial.stories.ts
+The full MIT notice is in licenses/poimandres-MIT.txt.
+
+Rapier3D — Apache 2.0, copyright Dimforge.
+https://github.com/dimforge/rapier.js
+Rigid-body coins and contact simulation use @dimforge/rapier3d-compat.
+Its licence is bundled in licenses/rapier-LICENSE.txt.
+
+Studio light placement adapted from Poimandres Aquarium (MIT):
+https://github.com/pmndrs/examples/blob/main/examples/aquarium/src/App.tsx
+Copyright 2024 Poimandres. Full notice in licenses/poimandres-examples-MIT.txt.
+Only lighting code is reused; none of its binary model assets are included.
+
+Solana coin emblem
+Official Solana Foundation logomark: https://solana.com/src/img/branding/solanaLogoMark.svg
+Brand reference: https://solana.com/branding
+The unchanged reference SVG is bundled at brands/solana-mark.svg. Its exact
+three-bar path is extruded into the gold coins on both faces, including jackpot
+coins. The blank coin body is procedural. The Solana name and logo belong to
+their respective owners; displaying the mark does not imply endorsement.
+Other dependencies and fonts retain their respective licences.

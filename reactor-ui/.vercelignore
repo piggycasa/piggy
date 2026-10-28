@@ -1,0 +1,7 @@
+.openai/
+.env*
+node_modules/
+dist/
+.git/
+*.tar.gz
+qa-screen.html

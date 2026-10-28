@@ -1,0 +1,61 @@
+{
+  "name": "piggy-game-preview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.mjs",
+    "localnet:validator": "node scripts/localnet-validator.mjs",
+    "localnet:deploy": "node scripts/localnet-deploy.mjs --test-lottery",
+    "localnet:bootstrap": "node scripts/localnet-bootstrap.mjs",
+    "localnet:serve": "node scripts/localnet-server.mjs",
+    "localnet:test": "node scripts/localnet-integration.mjs",
+    "localnet:recovery-test": "node scripts/localnet-recovery-test.mjs",
+    "localnet:empty-rollover-test": "node scripts/localnet-empty-rollover-test.mjs",
+    "localnet:adversarial-test": "node scripts/localnet-adversarial-test.mjs",
+    "test:visual": "node scripts/visual-qa.mjs",
+    "test:visual-physics": "node scripts/visual-physics-check.mjs",
+    "publicnet:prepare": "node scripts/publicnet-prepare.mjs",
+    "publicnet:preflight": "node scripts/publicnet-preflight.mjs",
+    "publicnet:rehearse": "node scripts/publicnet-rehearse.mjs",
+    "pump:prepare": "node scripts/pump-prepare.mjs",
+    "holder:publisher": "node scripts/holder-publisher.mjs",
+    "localnet:publisher-test": "node scripts/localnet-publisher-test.mjs",
+    "localnet:public-wallet-test": "node scripts/localnet-public-wallet-test.mjs",
+    "mainnet:plan": "node scripts/mainnet-plan.mjs",
+    "publicnet:game-plan": "node scripts/publicnet-game-init.mjs",
+    "test:public-wallet-ui": "node scripts/public-wallet-ui-test.mjs",
+    "round:keeper": "node scripts/round-keeper.mjs",
+    "localnet:keeper-test": "node scripts/localnet-keeper-test.mjs",
+    "test:wallet-connector": "node scripts/wallet-connector-ui-test.mjs",
+    "test:coin-marks": "node scripts/coin-mark-ui-test.mjs",
+    "test:claims-and-story": "node scripts/claim-story-ui-test.mjs",
+    "test:intuitive-ui": "node scripts/intuitive-ui-test.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.21.0",
+    "@fontsource/archivo-black": "5.3.0",
+    "@fontsource/barlow-condensed": "^5.2.8",
+    "@fontsource/jost": "5.3.0",
+    "@fontsource/manrope": "^5.2.8",
+    "@noble/hashes": "^1.8.0",
+    "@pmndrs/vanilla": "1.25.0",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "@wallet-standard/app": "1.1.1",
+    "bigint-buffer": "file:vendor/bigint-buffer",
+    "buffer": "^6.0.3",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "vite": "^7.1.7"
+  },
+  "overrides": {
+    "bigint-buffer": "$bigint-buffer",
+    "jayson": "5.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "PIGGY",
+  "symbol": "PIGGY",
+  "description": "Feed PIGGY with SOL. The last feeder when the timer ends wins the jackpot. Game shares earn a cut of new feeds; eligible $PIGGY holders can claim a share of game fees in SOL.",
+  "image": "https://piggy-play.windyhen258.chatgpt.site/token/piggy-f885a446442fe190e64a24607cb1f74205da11c8378aa319c46cb5cb411836d7.png",
+  "properties": {
+    "category": "image",
+    "files": [
+      {
+        "uri": "https://piggy-play.windyhen258.chatgpt.site/token/piggy-f885a446442fe190e64a24607cb1f74205da11c8378aa319c46cb5cb411836d7.png",
+        "type": "image/png"
+      }
+    ],
+    "attribution": "PIGGY token artwork adapts Piggy Bank Glass by tomgeurts (CC BY 4.0).",
+    "credits": "https://piggy-play.windyhen258.chatgpt.site/token/piggy-f885a446442fe190e64a24607cb1f74205da11c8378aa319c46cb5cb411836d7.credits.txt"
+  }
+}

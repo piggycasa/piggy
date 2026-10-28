@@ -1,0 +1,8 @@
+{
+  "name": "@piggy/unsigned-bigint-buffer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PIGGY pure JavaScript replacement for the four bigint-buffer conversion functions",
+  "main": "index.cjs",
+  "license": "MIT"
+}

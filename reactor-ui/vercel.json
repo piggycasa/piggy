@@ -1,0 +1,23 @@
+{
+  "framework": "vite",
+  "buildCommand": "VITE_PIGGY_CONFIG_URL=/piggy-config.json npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/verify",
+      "destination": "/verify/index.html"
+    },
+    {
+      "source": "/fomo3d",
+      "destination": "/fomo3d/index.html"
+    },
+    {
+      "source": "/rpc",
+      "destination": "/api/rpc"
+    },
+    {
+      "source": "/proofs/:path*",
+      "destination": "https://piggy-play.windyhen258.chatgpt.site/proofs/:path*"
+    }
+  ]
+}

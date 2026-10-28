@@ -1,0 +1,5 @@
+.topbar nav > .story-link{display:flex;align-items:center;min-height:44px;padding:10px 0;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;white-space:nowrap}
+.topbar nav > .story-link:hover,.lesson-story-link:hover{color:var(--kb-yellow)}
+.lesson-story-link{color:var(--kb-yellow);white-space:nowrap}
+@media(max-width:1200px){.topbar nav{gap:15px}.topbar nav > .story-link{font-size:10px}}
+@media(max-width:1023px){.topbar nav > .story-link{display:none}}

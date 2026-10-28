@@ -1,0 +1,16 @@
+FROM node:24.22.1-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates util-linux && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY .npmrc ./
+COPY vendor ./vendor
+# npm 11.19 changes optional peer resolution for this reviewed lockfile. Use
+# the exact installer that produced and successfully verified the lockfile.
+RUN npm install --global npm@11.6.2 --ignore-scripts --no-audit --no-fund \
+    && node --version && npm --version \
+    && npm ci --omit=dev --ignore-scripts --no-audit --no-fund \
+    && npm cache clean --force
+COPY src ./src
+COPY scripts ./scripts
+ENV NODE_ENV=production PIGGY_OPERATOR_DATA_DIR=/data/piggy PIGGY_OPERATOR_ENABLED=false
+ENTRYPOINT ["sh", "scripts/operator-entrypoint.sh"]
