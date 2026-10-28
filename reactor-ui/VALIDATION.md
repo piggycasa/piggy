@@ -2,6 +2,12 @@
 
 PIGGY is live at [piggy.casa](https://piggy.casa). Mainnet token creation, guarded feeds, game-reward claims and a production $PIGGY-holder claim have finalized; their scope and sponsored test funding are recorded below. Testnet remains unverified.
 
+## 28 October: Streamflow recipient eligibility
+
+The current suite passes **244 tests**. The live frontend passed **130 read-only production checks**, plus four dedicated desktop/phone/landscape checks for the Streamflow claim explanation. Railway deployment `05b1d3ac-8dd8-4a02-8a36-fe2be37ddbbc` runs the verified recipient-attribution module, with all six roles ready. The fresh publisher has `streamflowLocks: true`; the legacy publisher does not. A read-only capture returned the new recipient policy, and the existing publisher journal was byte-for-byte unchanged during verification. No lock was created, no token transfer was made, and no previous claim was rewritten. See [STREAMFLOW-REWARDS.md](docs/STREAMFLOW-REWARDS.md) for scope and snapshot timing.
+
+The Testnet program was deployed and verified against the reviewed binary during this run, but the complete rehearsal is still unverified after provider throttling and delayed transaction reads. This does not establish fresh-game Mainnet feed/claim test receipts. Existing pre-launch receipts below retain their original scope.
+
 Local checks use a dedicated Solana validator at `127.0.0.1:18899`; the UI and fixture signer bridge run on loopback ports 4317 and 4318. Local wallets and eligibility mints are fixtures. Private keys, genesis ledger and generated reports remain in ignored `.openai/local/`. Devnet has separate real-network receipts. Passing these checks is not an independent security audit.
 
 ## Executed checks
@@ -44,10 +50,9 @@ The fresh-launch client selects version `1793155991891`, game PDA `GXX38mLVdj2i2
 
 The actual feed and claim receipts in the next section belong to pre-launch version `1793081200001`. They remain historical evidence for that instance. Its existing rewards and accounts are preserved at [test-round claims](https://piggy.casa/test-claims/) using the original `/proofs/index.json`. No fresh-instance canary result is inferred from those receipts.
 
-
 ## Pre-launch mainnet instance and limited canary
 
-The live program is `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK`, game version `1793081200001`. Deployed ProgramData matched the reviewed feature-free binary and upgrade authority. Mainnet timing is 3,600 seconds initially, 30 seconds per key and an 86,400-second cap. The predictable lottery is disabled; its reserve remains accounted for.
+The tested pre-launch instance uses program `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK`, game version `1793081200001`. Deployed ProgramData matched the reviewed feature-free binary and upgrade authority. Mainnet timing is 3,600 seconds initially, 30 seconds per key and an 86,400-second cap. The predictable lottery is disabled; its reserve remains accounted for.
 
 Pump token creation finalized at slot 462230019 for mint `BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`: Token-2022, six decimals, one billion tokens, zero initial token purchase, and mayhem/cashback/Pump holder-reward flags off. [Creation transaction](https://solscan.io/tx/2CM1ccJRqmwbpCKLLUusu7L8ZWLL78MfcCHie387916PNP2cgTr2TXLWSPaq7jT83Aghje8ZCvxYSQtageUN9CUk).
 
@@ -58,7 +63,7 @@ Pump token creation finalized at slot 462230019 for mint `BwnmfvgEhAFboL8YW6CFoB
 
 These first transactions were signed through the Node client. A subsequent hosted-interface canary at `piggy.casa` passed through the public RPC proxy: [one guarded feed](https://explorer.solana.com/tx/jLjGZQvrkMWBbPR3yeS2nDrduUDUwJwLTc1wJUace7MikZJpNddbp9htZ9pe2eWBpJ42by6tu5yoBveEzrDdP6C) finalized at slot 462238446 and [one game claim](https://explorer.solana.com/tx/3UbmgDu8uTdfrBoepc5KrVTUPXPeyREsuzvAyKDcWVpHf8sH6CRdkbx3LakrgA19PW2V1HfcPm9tF6fAbYa1VLaW) at slot 462238521. The interface displayed both confirmations without browser exceptions. That test injected an isolated wallet interface with a strictly bounded Node-side operator signer; it did not exercise a personal extension, mobile wallet handoff or mainnet token-holder claim. No token purchase was made. Evidence is `.openai/local/mainnet/live-ui-authorized-canary.json` and its three screenshots.
 
-The first holder snapshot was captured before game creation. The original Mac `launchd` deployment and graceful restarts were tested, then all three Mac LaunchAgents were stopped and disabled at 23:44:27 on 27 October. The current keeper, publisher and proof-sync watcher run on a single Railway service with persistent `/data/piggy` storage; no awake or logged-in Mac is required. Generated launch evidence remains `.openai/local/mainnet/{pump-create-receipt,deployed-program-verification,game-canary-report,operator-run-status}.json`.
+The first holder snapshot was captured before game creation. The original Mac `launchd` deployment and graceful restarts were tested, then all three Mac LaunchAgents were stopped and disabled at 23:44:27 on 27 October. At that migration check, the keeper, publisher and proof-sync watcher ran on a single Railway service with persistent `/data/piggy` storage; no awake or logged-in Mac is required. Generated launch evidence remains `.openai/local/mainnet/{pump-create-receipt,deployed-program-verification,game-canary-report,operator-run-status}.json`.
 
 The nine-file server import preserved original S0 at slot `462231588`, its activation hash, keys and journals. Remote read-only checks verified the mainnet genesis, reviewed program and authorities. Enabled deployment `3b67f294-436b-4deb-9268-a649d1b374b3` reported all three roles healthy: the keeper observed round 2, the publisher waited on 31,500 lamports below its threshold, and proof sync uploaded the one-file empty index. A forced keeper SIGKILL recovered automatically from PID 16 to 102 with the original activation preserved and no new transaction. Persistent data also survived activation/redeployment. Evidence is `.openai/local/mainnet/railway-{import-receipt,readonly-verification,restart-verification}.json` and `.openai/local/railway-provision/enabled-health-verification.json`. This operational migration does not add a mainnet holder-claim or Testnet result.
 
@@ -66,7 +71,7 @@ Read-only production QA inspected the desktop page and connected-wallet states a
 
 ### Pre-launch token-holder claim: 28 October
 
-The actual production game and PIGGY mint were tested through `piggy.casa` using one Node-backed canary wallet. The [holder claim](https://explorer.solana.com/tx/2svi9jfKa3jmiCEUvqq4zyzh1SiWkyFPaLNchQfSLqh5fFaZFDFwWTc2Xmx4Sp3R4M2hwwJqzsqPXdJM3AoUPKLF) finalized at slot **462274354**. It paid **10,000,000 lamports gross** and **8,928,280 lamports net**, after a 10,000-lamport network fee and 1,061,720-lamport permanent receipt rent. The temporary WSOL account closed; all PIGGY balances and token authorities remained unchanged.
+The pre-launch mainnet game and PIGGY mint were tested through `piggy.casa` using one Node-backed canary wallet. The [holder claim](https://explorer.solana.com/tx/2svi9jfKa3jmiCEUvqq4zyzh1SiWkyFPaLNchQfSLqh5fFaZFDFwWTc2Xmx4Sp3R4M2hwwJqzsqPXdJM3AoUPKLF) finalized at slot **462274354**. It paid **10,000,000 lamports gross** and **8,928,280 lamports net**, after a 10,000-lamport network fee and 1,061,720-lamport permanent receipt rent. The temporary WSOL account closed; all PIGGY balances and token authorities remained unchanged.
 
 The test used two disclosed 0.01-SOL vault top-ups rather than new game feeds, avoiding timer extension. Epoch 1 allocated 10,031,500 lamports to the original S0 holder: 10,000,000 sponsored lamports plus 31,500 existing P3D game-fee lamports. Epoch 2 allocated the second 10,000,000 sponsored lamports to the actual canary holder in saved S1. No original snapshot or entitlement was fabricated. The canary acquired 174,830.423692 PIGGY in a separate post-launch purchase costing 0.004949992 SOL plus 0.002865040 SOL of reported rent/fees; the launch itself still had zero initial buy. Sponsored test funding is not evidence of organic returns.
 
