@@ -1,0 +1,11 @@
+.git/
+.openai/
+.env
+.env.*
+node_modules/
+dist/
+target/
+.vercel/
+*.pem
+*.key
+.DS_Store
