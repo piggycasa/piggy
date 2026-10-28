@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "cluster": "mainnet-beta",
+  "programId": "3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK",
+  "gameVersion": "1793155991891",
+  "gameAccount": "GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g",
+  "piggyMint": "BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA",
+  "gameAndHolderInitialization": {
+    "signature": "5rJPtiD8oEMibu2YqqZ5FdZoTVnyvAvTunQfRuJrpoY5pvQHutDteiZJp198eoimVqxDoT6byg9Af5r8czAEhSzb",
+    "slot": 462316059
+  },
+  "firstRound": {
+    "roundId": "1",
+    "account": "6TPGnFDLTA5CV1wxtyzySewGCEF8Q5wKr1755fWYwBsb",
+    "pot": "2p4TZ1Q369HWFih53xAM8TyUztsbdpwddoZHNbDriJNG",
+    "initializationSignature": "4XpxkakjzZwTapEcvagHYWYuNnvMuKvqU1rDDQ3KiZFRXUpmbGmRwwKVyRSRCTJ8tBxH721ipa27wRZAe88KjtaN",
+    "finalizedSlot": 462322495,
+    "startedAt": "2026-10-28T03:22:30Z",
+    "initialDeadline": "2026-10-28T04:22:30Z",
+    "initialSeconds": 3600
+  },
+  "readOnlyOpeningObservation": {
+    "finalizedSlot": 462323612,
+    "keys": "0",
+    "potLamports": "0",
+    "scope": "Opening observation only; later on-chain purchases change these values."
+  },
+  "totalSetupLamports": 8864440,
+  "previousClaimsUrl": "https://piggy.casa/test-claims/",
+  "proofIndexUrl": "https://piggy.casa/launch-proofs/index.json",
+  "oldProofIndexUrl": "https://piggy.casa/proofs/index.json"
+}
