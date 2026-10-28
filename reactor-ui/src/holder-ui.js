@@ -3,6 +3,9 @@ import './konterball-fonts.css';
 import './konterball-ui.css';
 import './claim-ui.css';
 import './intuitive-arena.css';
+import './earning-lanes.css';
+import './legacy-claims.css';
+import { assertRouteActionAllowed, inactivePrizeScene } from './legacy-claims.mjs';
 import { createPurchasePreview, previewDisplayNumber } from './purchase-preview.mjs';
 import { createUsdDisplay } from './usd-values.mjs';
 import { createClaimGuide } from './claim-guide.mjs';
@@ -43,6 +46,8 @@ const STORAGE = 'piggy.holder-demo.v4';
 const clientMode = selectClientMode(location, import.meta.env);
 const offlineDemo = clientMode.mode === 'demo';
 const publicChain = clientMode.mode === 'public';
+const claimOnly = clientMode.claimOnly === true;
+if (claimOnly) document.documentElement.classList.add('test-claims-mode');
 let chainClient, chainReady = false, chainHasState = false, chainPending = false, chainFailure = '', chainPollBusy = false;
 let settlementRound, settlementAttempts = 0, nextSettlementAttempt = 0;
 let activeChainAction = null, claimProgress = null, claimResult = null, returnToClaims = false;
@@ -70,7 +75,7 @@ if (!offlineDemo) {
   state.round.status = 'connecting'; state.round.id = 0;
 }
 const now = () => Date.now() + offset;
-let vault = createVault($('#safe-art'));
+let vault = claimOnly ? inactivePrizeScene() : createVault($('#safe-art'));
 const feedback = createArenaFeedback();
 // Keep transient purchase feedback over the pig, clear of the always-readable rules.
 $('.safe-stage').append($('#reactor-stage .arena-feedback'));
@@ -86,7 +91,16 @@ function renderClaimGuide() {
     wallet: publicChain ? chainClient?.wallet : state.chain?.wallet, readError: chainFailure, action: activeChainAction, progress: claimProgress, result: claimResult });
 }
 const initialClaimTab = new URLSearchParams(location.search).get('claim');
-if (['game', 'holder'].includes(initialClaimTab)) queueMicrotask(() => claimGuide.open(initialClaimTab));
+if (['game', 'holder'].includes(initialClaimTab) || claimOnly) queueMicrotask(() => claimGuide.open(['game','holder'].includes(initialClaimTab) ? initialClaimTab : 'game'));
+if (claimOnly) {
+  const landing=element('main','test-claims-landing');
+  landing.innerHTML='<h1>Test-round claims.</h1><p>The launch has a fresh game. Your pre-launch SOL rewards stay available here.</p><button id="open-test-claims" type="button">View my test rewards</button><a href="/">Back to the live game</a>';
+  $('#arena').before(landing);
+  $('#open-test-claims').addEventListener('click',()=>claimGuide.open('game'));
+  $('.brand').href='/';
+  $('#claim-dialog-title').textContent='Claim test rewards.';
+  $('.claim-heading p').textContent='Pre-launch game and token-holder rewards. Connect the same wallet to claim.';
+}
 let flashTimeout;
 let counterFrame;
 let lastDisplayedPot = null;
@@ -491,6 +505,11 @@ function renderPurchase() {
     $('#purchase-outcome').textContent = chainFailure ? publicChain ? chainFailure : 'Solana is unavailable. Open Wallet for details.' : 'Connecting…';
   }
   renderUsdAmounts(quote);
+  if (claimOnly) {
+    $('#buy-button').disabled=true; $('#buy-label').textContent='Test claims only';
+    $('.demo-badge').lastChild.textContent='Test claims · SOL';
+    $('#claim-network-note').textContent='Pre-launch mainnet instance. New entries are disabled on this page; existing game and funded token-holder SOL rewards remain claimable.';
+  }
 }
 function renderUsdAmounts(quote = cachedPurchaseQuote?.quote) {
   const you = state.players.you;
@@ -630,7 +649,7 @@ $('#claim-token-button').addEventListener('click', () => {
   if (result.ok) { claimResult = { kind: 'holder', status: 'success' }; renderAll(); sound('win'); toast('Token-holder rewards claimed', `${money(result.amount)} demo SOL added to your wallet. Your tokens stay in your wallet.`); }
   else toast('Nothing to claim', result.error, true);
 });
-document.querySelectorAll('[data-dialog]').forEach(button => button.addEventListener('click', () => { if (publicChain && button.dataset.dialog === 'wallet-dialog' && openPublicWallet) { openPublicWallet(); return; } renderHistory(); renderPurchase(); if (button.dataset.dialog === 'rewards-dialog') { claimGuide.open(button.hasAttribute('data-open-holder')?'holder':button.id === 'loot-claim' ? 'game' : undefined); return; } screens.open($(`#${button.dataset.dialog}`)); }));
+document.querySelectorAll('[data-dialog]').forEach(button => button.addEventListener('click', () => { if (publicChain && button.dataset.dialog === 'wallet-dialog' && openPublicWallet) { openPublicWallet(); return; } renderHistory(); renderPurchase(); if (button.dataset.dialog === 'rewards-dialog') { claimGuide.open(button.hasAttribute('data-open-holder')?'holder':button.hasAttribute('data-open-game') || button.id === 'loot-claim' ? 'game' : undefined); return; } screens.open($(`#${button.dataset.dialog}`)); }));
 document.addEventListener('click',event=>{const button=event.target.closest('[data-open-holder]');if(!button||button.hasAttribute('data-dialog'))return;event.preventDefault();renderPurchase();claimGuide.open('holder');});
 document.querySelectorAll('dialog').forEach(dialog => {
   dialog.querySelectorAll('.dialog-close,.dialog-done').forEach(button => button.addEventListener('click', () => dialog.close()));
@@ -721,6 +740,7 @@ async function adoptChain(raw, { feedbackEnabled = true } = {}) {
 }
 
 async function runChainAction(action, parameters = {}) {
+  try { assertRouteActionAllowed(claimOnly, action); } catch(error) { toast('Test claims only',error.message,true); return; }
   if (!chainReady || chainPending) return;
   const isClaimAction = action === 'claimGame' || action === 'claimHolder';
   const actionWallet = publicChain ? chainClient.wallet : state.chain?.wallet;

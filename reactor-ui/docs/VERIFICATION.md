@@ -22,7 +22,7 @@ The browser check uses the site's RPC and manifest. An independent RPC can compa
 
 ## Check without trusting this site
 
-1. Confirm the mainnet program is `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK` and token mint is `BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`. The game account is `FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm` (version `1793081200001`).
+1. Confirm the mainnet program is `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK` and token mint is `BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`. The game account is `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g` (version `1793155991891`).
 2. Open [the public PIGGY repository](https://github.com/piggycasa/piggy). The program is in `program/`; interface and operator implementations are in `reactor-ui/`. Source commit and release hashes are pinned in this site's `/verification/release.json`.
 3. Clone that repository and run `node tools/source-digest.mjs`; it must produce the recorded source-tree digest above.
 4. Run `node tools/verify-release.mjs --rpc YOUR_MAINNET_RPC_URL` using an independent HTTPS mainnet endpoint. It reads finalized accounts, verifies the genesis, loader and ProgramData pointer, hashes the full executable and reports the current upgrade authority. It uses no wallet and sends no transaction.
@@ -31,3 +31,8 @@ The browser check uses the site's RPC and manifest. An independent RPC can compa
 The browser button compares published bytes against finalized chain data. Public source and a matching input digest do not establish an independently reproduced source build. The official Solana verification procedure requires a controlled build and matching deployed binary; no such independent verification is claimed here.
 
 Pinned public program-source commit: [`f7ba440e8667dd920d89bf6a8fba0158c3887e68`](https://github.com/piggycasa/piggy/tree/f7ba440e8667dd920d89bf6a8fba0158c3887e68/program).
+
+
+## Pre-launch test instance
+
+The fresh launch uses a different game PDA under the same program and $PIGGY mint. The previous game `FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm`, version `1793081200001`, retains its accounts and claims. Existing game and token-holder rewards remain accessible at [test-round claims](https://piggy.casa/test-claims/). Its proof index remains at `/proofs/index.json`; the fresh game has a separate `/launch-proofs/index.json`. No old account balance or transaction history was erased.

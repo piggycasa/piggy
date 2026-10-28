@@ -165,7 +165,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
  #arena .countdown-arena{gap:7px}
  #arena .key-loot{padding:10px 15px}
 }
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  #app.piggy-studio{--kb-header-size:58px;--kb-footer-size:28px;--kb-inline-space:18px}
  .piggy-studio .brand{font-size:24px}.piggy-studio .piggy-mark{width:28px;height:28px}
  .piggy-studio .topbar{gap:10px}.piggy-studio .demo-badge{font-size:11px;position:absolute;top:41px;left:36px}
@@ -424,7 +424,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 /* Compact layouts remove redundant detail before reducing readable type or targets. */
 #arena .quantity-presets button{min-height:44px;height:44px}
 #arena .mode-button,#arena .get-piggy{min-height:44px}
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  .piggy-studio .topbar .help-button,.piggy-studio .topbar .rewards-button{min-width:44px;width:44px}
  .piggy-studio .topbar nav{gap:5px}
  #arena .quantity-control button{width:44px;min-width:44px}
@@ -473,7 +473,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
  #arena .holder-ticket{padding:12px 18px;gap:6px}
  #arena .holder-heading h2{font-size:18px}
 }
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  #arena .play-ticket{gap:9px 13px;padding:14px 16px 11px}
  #arena .quantity-presets{display:none}
  #arena .holder-ticket{padding:9px 13px;gap:2px 8px}
@@ -497,7 +497,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 #arena .play-ticket{grid-template-areas:none;grid-auto-rows:auto}
 #arena .sound-button{position:static;inset:auto;transform:none}
 .piggy-studio .help-button::after{content:none!important}
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  .piggy-studio .topbar nav>.code-link,.piggy-studio .topbar nav>.story-link,.piggy-studio .topbar nav>.history-button{display:none}
  .piggy-studio .topbar nav>.help-button span,.piggy-studio .topbar nav>.rewards-button .reward-word,.piggy-studio .topbar nav>.rewards-button .claim-word{display:none}
  #arena .purchase-panel{justify-content:flex-start;align-self:stretch;gap:8px}
@@ -526,7 +526,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
  #arena .holder-ticket{min-height:70px}
 }
 #arena .key-loot[data-wallet-known=false] .loot-amount{display:none}
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  #arena .jackpot-stage{display:block;height:100%}
  #arena .countdown-arena{height:100%}
  #arena .arena-feedback{bottom:0;padding:6px 10px;max-width:90%}
@@ -572,7 +572,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 @media(max-width:999px){#arena .pot-caption{font-size:11px;margin-top:3px}}
 #arena .key-loot{height:auto;min-height:0;max-height:none}
 #arena .holder-heading:hover h2{color:var(--pig-pink)}
-@media(max-width:999px) and (orientation:portrait), (orientation:landscape) and (max-height:600px){
+@media(max-width:999px) and (orientation:portrait), (orientation:landscape) and (max-height:600px), (max-width:999px) and (min-height:601px){
  #arena .holder-ticket{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto;min-height:64px;align-items:center}
  #arena .holder-heading{grid-column:1;grid-row:1;min-height:44px}
  #arena .holder-heading h2::after{content:' ↗';font:12px var(--font-control);color:var(--pig-pink)}
@@ -596,10 +596,10 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 #arena .holder-heading{min-height:44px}
 #arena .quote-details-trigger{min-height:44px;min-width:44px}
 #arena .mode-button{min-width:44px}
-@media(max-width:999px) and (orientation:portrait) and (min-height:681px){
+@media(max-width:999px) and (orientation:portrait) and (min-height:681px), (max-width:999px) and (min-height:601px) and (min-height:681px){
  #arena .loot-amount>.sol-equivalent{display:inline-flex;font-size:11px}
 }
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  #arena .stage-heading{display:none}
 }
 @media(orientation:landscape) and (max-height:600px){
@@ -677,7 +677,7 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 #arena .arena-feedback[data-tone=outbid]{background:#f8f9ff}
 .piggy-studio.urgent #arena .timer-caption{color:var(--pig-lime)}
 @keyframes piggy-paid{0%{transform:scale(1)}30%{transform:scale(1.015)}100%{transform:scale(1)}}
-@media(max-width:999px) and (orientation:portrait){
+@media(max-width:999px) and (orientation:portrait), (max-width:999px) and (min-height:601px){
  #arena .pot-amount,#arena .pot-amount.is-precise,#arena .pot-amount.is-long{font-size:30px;letter-spacing:-1.3px}
  #arena .countdown{font-size:23px;letter-spacing:-.8px}
  #arena .countdown-arena{gap:5px}
@@ -714,3 +714,15 @@ html,body{background:var(--pig-field);color:var(--pig-cream);font-style:normal}
 dialog .entry-breakdown>div,dialog li span,.wallet-connection-status,.wallet-browser-note{color:#e1dbff}
 dialog .reward-card h3{color:var(--pig-lime)}
 @media(max-width:999px){#arena .play-ticket .entry-cost[data-usd-available=false]>.sol-equivalent{font-size:13px}}
+
+/* Tall narrow browser panes use the same single-stage layout as portrait phones. */
+/* Nearly square browser panes have room for a compact side control rail. */
+@media(min-width:700px) and (max-width:999px) and (min-height:601px) and (orientation:landscape){
+ #arena.intuitive-arena{grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:minmax(0,1fr);gap:18px}
+ #arena .jackpot-stage{display:block;height:100%}
+ #arena .countdown-arena{grid-template-rows:auto minmax(100px,1fr) auto auto;height:100%}
+ #arena .purchase-panel{align-self:stretch;justify-content:center}
+ #arena .your-position{grid-column:1/-1;grid-row:4}
+ #arena .position-values{grid-template-columns:1fr 1fr;gap:12px}
+ #arena .ticket-bottom{grid-column:1/-1;grid-row:5;justify-content:flex-end}
+}

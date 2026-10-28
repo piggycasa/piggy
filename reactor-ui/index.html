@@ -68,18 +68,23 @@
           <p class="arena-token-note" id="arena-token-note">Round keys ≠ $PIGGY tokens.</p>
           <div class="reward-dock" hidden><span id="dock-rewards">—</span></div><div class="balance-line" hidden><span>Wallet balance</span><strong id="balance-value">— SOL</strong></div>
         </section>
-        <section class="holder-ticket" aria-labelledby="holder-title">
-          <a class="holder-heading" href="https://pump.fun/coin/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA" target="_blank" rel="noopener noreferrer" aria-label="Get PIGGY on Pump"><img src="/piggy-mark.svg" alt="" /><div><h2 id="holder-title">Hold $PIGGY</h2><p>Game fees in SOL. No staking.</p></div></a>
-          <div class="holder-bottom"><div class="holder-money money-pair personal-money"><strong id="holder-earn-usd" data-usd-compact="true" class="usd-equivalent" hidden></strong><span id="holder-earn-amount">Connect to see rewards</span><span id="holder-short-status">Claim eligible rewards</span></div><button class="holder-claim" data-open-holder>Claim SOL<svg class="ui-icon"><use href="#i-arrow"/></svg></button></div>
-          <a class="get-piggy" href="https://pump.fun/coin/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA" target="_blank" rel="noopener noreferrer">Get $PIGGY<svg class="ui-icon"><use href="#i-arrow"/></svg></a>
-        </section>
+        <div class="earning-options" aria-label="Two ways to earn SOL">
+          <button class="key-earning-ticket earning-lane" data-open-game data-dialog="rewards-dialog" aria-label="View game rewards from holding keys">
+            <svg class="ui-icon earning-icon"><use href="#i-key"/></svg><span class="earning-copy"><h2>Hold keys</h2><p><span class="earning-full">Earn SOL from future key buyers.</span><span class="earning-compact">Future key buyers pay you.</span></p></span><svg class="ui-icon earning-arrow"><use href="#i-arrow"/></svg>
+          </button>
+          <section class="holder-ticket earning-lane" aria-labelledby="holder-title">
+            <button class="holder-heading" data-open-holder data-dialog="rewards-dialog" aria-label="View SOL rewards from holding PIGGY"><img src="/piggy-mark.svg" alt="" /><span class="earning-copy"><h2 id="holder-title">Hold $PIGGY</h2><p><span class="earning-full">Game fees in SOL. No staking.</span><span class="earning-compact">Game fees. No staking.</span></p></span><svg class="ui-icon earning-arrow"><use href="#i-arrow"/></svg></button>
+            <div class="holder-bottom"><div class="holder-money money-pair personal-money"><strong id="holder-earn-usd" data-usd-compact="true" class="usd-equivalent" hidden></strong><span id="holder-earn-amount">Connect to see rewards</span><span id="holder-short-status">Claim eligible rewards</span></div><button class="holder-claim">Claim SOL<svg class="ui-icon"><use href="#i-arrow"/></svg></button></div>
+            <a class="get-piggy" href="https://pump.fun/coin/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA" target="_blank" rel="noopener noreferrer">Get $PIGGY<svg class="ui-icon"><use href="#i-arrow"/></svg></a>
+          </section>
+        </div>
       </aside>
     </main>
     <footer class="live-footer"><div class="live-label"><svg class="ui-icon"><use href="#i-pulse"/></svg>Latest feeds</div><div id="activity-list" class="activity-list" aria-label="Recent purchases"></div></footer>
   </div>
   <div id="toast" class="toast" role="status"><span class="toast-check">✓</span><div><strong id="toast-title"></strong><span id="toast-detail"></span></div><button id="toast-dismiss" aria-label="Dismiss notification">×</button></div>
   <dialog id="rewards-dialog" class="rewards-dialog claim-dialog" aria-labelledby="claim-dialog-title"><button class="dialog-close" aria-label="Back to game"><img src="/konterball/back-arrow.svg" alt="" /></button><div class="kb-dialog-content">
-    <header class="claim-heading"><span class="dialog-symbol" aria-hidden="true">✦</span><h2 id="claim-dialog-title">Claim your SOL.</h2><p>Earned rewards are yours to withdraw. Choose a balance below.</p></header>
+    <header class="claim-heading"><span class="dialog-symbol" aria-hidden="true">✦</span><h2 id="claim-dialog-title">Claim your SOL.</h2><p>Earned rewards are yours to withdraw. Choose a balance below.</p><a class="test-claims-link" href="/test-claims/">Pre-launch test rewards ↗</a></header>
     <ol class="claim-steps" aria-label="How claiming works">
       <li data-claim-step="connect"><span class="claim-step-number" aria-hidden="true">1</span><span><strong>Same wallet</strong><small>Connect the wallet you used.</small></span></li>
       <li data-claim-step="choose"><span class="claim-step-number" aria-hidden="true">2</span><span><strong>Choose rewards</strong><small>Claim an available balance.</small></span></li>
@@ -97,6 +102,7 @@
         <details class="claim-breakdown claim-pool-example"><summary>Why can rewards exceed the jackpot?</summary><p>They are different pools. Key rewards are paid from feeds as they happen. The jackpot is the last feeder’s share of the remaining round pot. Available game SOL can also include earlier rounds.</p><p>Example: one 1 SOL feed in Whale mode, with no existing pot:</p><dl><div><dt>Key reward pool</dt><dd>0.30 SOL</dd></div><div><dt>Remaining round pot</dt><dd>0.50 SOL</dd></div><div><dt>Other allocations</dt><dd>0.20 SOL</dd></div><div><dt>Last feeder’s jackpot: 48% of 0.50</dt><dd>0.24 SOL</dd></div></dl><p>If you own every key, the 0.30 SOL key reward is yours—even though the jackpot is 0.24 SOL. That reward returns part of the SOL paid in; it is not 0.30 SOL profit. This illustration excludes an opening pot and rounding.</p></details>
       </article>
       <article class="reward-card token-reward-card claim-panel" id="claim-panel-holder" role="tabpanel" aria-labelledby="claim-tab-holder" tabindex="0" hidden><h3>From holding $PIGGY</h3><p class="claim-panel-intro">A separate SOL balance from published, funded snapshots. Claim SOL and keep your tokens.</p>
+        <a class="claim-get-piggy" href="https://pump.fun/coin/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA" target="_blank" rel="noopener noreferrer">Get $PIGGY on Pump ↗</a>
         <div class="reward-primary"><span id="token-claimable">0.00</span><small>SOL available to claim</small><span id="holder-claim-usd" class="usd-equivalent usd-value"></span></div><p class="claim-availability" id="claim-holder-status" aria-live="polite">Published rewards for your wallet appear here.</p>
         <div class="claim-net" id="claim-holder-net-row" hidden><span>Estimated total to your wallet</span><strong id="claim-holder-net">—</strong></div>
         <button class="claim-button" id="claim-token-button" disabled>Nothing to claim yet</button>

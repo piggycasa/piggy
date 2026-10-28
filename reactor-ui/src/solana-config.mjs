@@ -1,3 +1,4 @@
+import { isTestClaimsPath, TEST_CONFIG_PATH } from './legacy-claims.mjs';
 /** Public deployment configuration contains addresses only, never signing keys. */
 import { PublicKey } from '@solana/web3.js';
 export const PUBLIC_CLUSTERS = Object.freeze(['devnet', 'testnet', 'mainnet-beta']);
@@ -53,6 +54,10 @@ export function validatePublicConfig(source, { origin = 'https://piggy.invalid' 
 }
 /** Hosted builds fail closed. Only loopback hosts may use the fixture signer. */
 export function selectClientMode(location, env = {}) {
+  if (isTestClaimsPath(location.pathname)) {
+    if (!env.VITE_PIGGY_CONFIG_URL) return { mode:'unconfigured', error:'The test-claims deployment is not configured. Transactions are disabled.' };
+    return { mode:'public', configUrl:new URL(TEST_CONFIG_PATH,location.origin).href, claimOnly:true };
+  }
   const query = new URLSearchParams(location.search || '');
   if (query.get('demo') === '1') return { mode:'demo' };
   const configured = env.VITE_PIGGY_CONFIG_URL;

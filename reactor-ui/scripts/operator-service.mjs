@@ -11,11 +11,12 @@ const CODE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const inside = (root, candidate) => candidate === root || candidate.startsWith(root + path.sep);
 const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) { return error.code !== 'ESRCH'; } };
 const HEARTBEATS = {
-  keeper: new Set(['waiting','celebration','submitted','pending-reconciliation']),
+  keeper: new Set(['waiting','celebration','submitted','pending-reconciliation','legacy-settled','quiescent']),
   publisher: new Set(['waiting-for-cadence','waiting-for-funded-threshold','published']),
   proofSync: new Set(['synchronized','changed-during-upload']),
 };
 export function parseOperatorHeartbeat(role, line) {
+  role={legacyKeeper:'keeper',legacyPublisher:'publisher',legacyProofSync:'proofSync'}[role]||role;
   if (typeof line !== 'string' || line.length > 16_384) return null;
   let value; try { value=JSON.parse(line); } catch { return null; }
   if (!value || Array.isArray(value) || !HEARTBEATS[role]?.has(value.status)) return null;
@@ -33,11 +34,12 @@ async function privateJson(filename) {
   return JSON.parse(await fs.readFile(filename, 'utf8'));
 }
 
-async function inspectFiles(dataDir, codeDir) {
-  const keeperFile = path.join(dataDir, 'configs/keeper.active.json'), publisherFile = path.join(dataDir, 'configs/publisher.active.json'), uploadFile = path.join(dataDir, 'proof-upload-config.json');
+async function inspectFiles(dataDir, codeDir, { legacy = false } = {}) {
+  const keeperFile = path.join(dataDir, `configs/keeper.${legacy?'legacy':'active'}.json`), publisherFile = path.join(dataDir, `configs/publisher.${legacy?'legacy':'active'}.json`), uploadFile = path.join(dataDir, 'proof-upload-config.json');
   const [keeper, publisher, upload, migration] = await Promise.all([privateJson(keeperFile), privateJson(publisherFile), privateJson(uploadFile), privateJson(path.join(dataDir,'migration.json'))]);
   const resolve = (filename, value) => { if (typeof value !== 'string') throw new Error('Missing operator path.'); const resolved = path.resolve(path.dirname(filename), value); if (!inside(dataDir, resolved)) throw new Error('Operator data path leaves the persistent volume.'); return resolved; };
   if (keeper.cluster !== 'mainnet-beta' || publisher.cluster !== 'mainnet-beta' || keeper.mainnetEnabled !== true || publisher.mainnetEnabled !== true || ['programId','gameVersion','piggyMint','genesisHash'].some(key => String(keeper[key]) !== String(publisher[key]))) throw new Error('Operator configurations do not share the enabled mainnet deployment.');
+  if(legacy&&keeper.settleOnly!==true)throw new Error('Legacy keeper must be explicitly settle-only.');
   if (migration.schemaVersion !== 1 || !/^[a-f\d]{64}$/.test(migration.id??'') || !Number.isSafeInteger(migration.openingSlot) || migration.openingSlot < 0 || ['cluster','programId','gameVersion','piggyMint','genesisHash'].some(key=>String(migration.domain?.[key])!==String(keeper[key]))) throw new Error('A completed matching operator migration marker is required.');
   const keeperWorkspace = resolve(keeperFile, keeper.workspace), publisherWorkspace = resolve(publisherFile, publisher.workspace), proofOutput = resolve(publisherFile, publisher.proofOutput);
   const publisherState = resolve(keeperFile, keeper.publisherStateFile), keeperKey = resolve(keeperFile, keeper.keeperKeypair), publisherKey = resolve(publisherFile, publisher.publisherKeypair), tokenFile = resolve(uploadFile, upload.tokenFile);
@@ -48,11 +50,27 @@ async function inspectFiles(dataDir, codeDir) {
   }
   const index = path.join(proofOutput, 'index.json'); if (!inside(dataDir, await fs.realpath(index))) throw new Error('Proof index leaves the operator volume.');
   for (const script of ['round-keeper.mjs','holder-publisher.mjs','watch-holder-proofs.mjs']) await fs.access(path.join(codeDir, 'scripts', script));
-  return [
+  const definitions = [
     { name: 'keeper', args: [path.join(codeDir,'scripts/round-keeper.mjs'),'watch','--config',keeperFile,'--allow-mainnet'], lock: path.join(keeperWorkspace,'publisher.lock') },
     { name: 'publisher', args: [path.join(codeDir,'scripts/holder-publisher.mjs'),'watch','--config',publisherFile,'--allow-mainnet'], lock: path.join(publisherWorkspace,'publisher.lock') },
     { name: 'proofSync', args: [path.join(codeDir,'scripts/watch-holder-proofs.mjs'),'--config',uploadFile,'--interval-seconds','30'], lock: path.join(`${uploadFile}.watch`,'publisher.lock') },
   ];
+  if(legacy)for(const definition of definitions)definition.name={keeper:'legacyKeeper',publisher:'legacyPublisher',proofSync:'legacyProofSync'}[definition.name];
+  return {definitions,keeper,publisher,upload,resources:await Promise.all([keeperWorkspace,publisherWorkspace,proofOutput].map(value=>fs.realpath(value)))};
+}
+
+export async function inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir=null,combinedRentCapLamports=120_000_000,combinedFeeCapLamports=500_000}={}){
+  const primary=await inspectFiles(dataDir,codeDir);
+  if(!legacyDataDir)return primary.definitions;
+  const legacy=await inspectFiles(legacyDataDir,codeDir,{legacy:true});
+  if(legacyDataDir===dataDir||String(primary.keeper.gameVersion)===String(legacy.keeper.gameVersion)||['programId','piggyMint','genesisHash','cluster'].some(key=>primary.keeper[key]!==legacy.keeper[key]))throw new Error('Legacy and current operators must be different games on the same deployment.');
+  if(primary.resources.some(a=>legacy.resources.some(b=>inside(a,b)||inside(b,a))))throw new Error('Legacy and current journals or proof directories overlap.');
+  if(new URL(primary.upload.siteUrl).origin===new URL(legacy.upload.siteUrl).origin)throw new Error('Legacy and current proof origins must be independent.');
+  for(const[field,cap]of[['maxDailyRentLamports',combinedRentCapLamports],['maxDailyFeeLamports',combinedFeeCapLamports]]){
+    const values=[primary.keeper[field],legacy.keeper[field]];
+    if(!Number.isSafeInteger(cap)||cap<1||values.some(x=>!Number.isSafeInteger(x)||x<1)||values[0]+values[1]>cap)throw new Error('Combined legacy and current keeper budgets exceed the shared cap.');
+  }
+  return [...primary.definitions,...legacy.definitions];
 }
 
 async function clearExitedLock(filename, { isAlive, expectedPid } = {}) {
@@ -68,12 +86,17 @@ async function clearExitedLock(filename, { isAlive, expectedPid } = {}) {
 export async function startOperatorService({ env = process.env, codeDir = CODE, spawnProcess = spawn, isAlive = alive, log = value => console.error(JSON.stringify(value)), restartBaseMs = 1_000, restartMaxMs = 30_000, shutdownMs = 125_000, heartbeatTtlMs = 180_000 } = {}) {
   const requestedDataDir = path.resolve(env.PIGGY_OPERATOR_DATA_DIR || '/data/piggy');
   const dataDir = await fs.realpath(requestedDataDir).catch(error=>{if(error.code==='ENOENT')return requestedDataDir;throw error;});
+  let legacyDataDir=null;
+  if(env.PIGGY_OPERATOR_LEGACY_DATA_DIR){if(!path.isAbsolute(env.PIGGY_OPERATOR_LEGACY_DATA_DIR))throw new Error('Legacy operator directory must be absolute.');legacyDataDir=await fs.realpath(env.PIGGY_OPERATOR_LEGACY_DATA_DIR);if(legacyDataDir===dataDir)throw new Error('Legacy operator directory must differ from the current directory.');}
   const enabled = env.PIGGY_OPERATOR_ENABLED === 'true', port = Number(env.PORT || 8080);
   if (!Number.isInteger(port) || port < 0 || port > 65535 || (env.PIGGY_OPERATOR_ENABLED && !['true','false'].includes(env.PIGGY_OPERATOR_ENABLED))) throw new Error('Invalid operator service environment.');
   if (enabled && env.PIGGY_OPERATOR_LOCK_HELD !== '1') throw new Error('Enabled operators require the deployment wrapper kernel lock.');
+  if(enabled&&legacyDataDir&&env.PIGGY_OPERATOR_LEGACY_LOCK_HELD!=='1')throw new Error('Legacy operators require their independent deployment wrapper kernel lock.');
   let stopping = false, seeded = false, definitions = [], lastExit = null;
-  const roles = new Map(['keeper','publisher','proofSync'].map(name => [name,{name,state:enabled?'unseeded':'disabled',child:null,timer:null,failures:0,lastActivityAt:null,lastSuccessAt:null,lastStatus:null}]));
-  const status = () => ({ ready: enabled && seeded && [...roles.values()].every(role => role.state === 'running') && ['keeper','publisher'].every(name=>{const stamp=roles.get(name).lastSuccessAt;return stamp&&Date.now()-Date.parse(stamp)<=heartbeatTtlMs;}), enabled, roles: Object.fromEntries([...roles].map(([name,role]) => [name,{state:role.state,lastActivityAt:role.lastActivityAt,lastSuccessAt:role.lastSuccessAt,lastStatus:role.lastStatus}])), lastExit });
+  const roleNames=['keeper','publisher','proofSync',...(legacyDataDir?['legacyKeeper','legacyPublisher','legacyProofSync']:[])];
+  const requiredHeartbeats=['keeper','publisher',...(legacyDataDir?['legacyKeeper','legacyPublisher']:[])];
+  const roles = new Map(roleNames.map(name => [name,{name,state:enabled?'unseeded':'disabled',child:null,timer:null,failures:0,lastActivityAt:null,lastSuccessAt:null,lastStatus:null}]));
+  const status = () => ({ ready: enabled && seeded && [...roles.values()].every(role => role.state === 'running') && requiredHeartbeats.every(name=>{const stamp=roles.get(name).lastSuccessAt;return stamp&&Date.now()-Date.parse(stamp)<=heartbeatTtlMs;}), enabled, roles: Object.fromEntries([...roles].map(([name,role]) => [name,{state:role.state,lastActivityAt:role.lastActivityAt,lastSuccessAt:role.lastSuccessAt,lastStatus:role.lastStatus}])), lastExit });
   const server = http.createServer((req,res) => { if (req.method !== 'GET' || !['/','/health','/ready'].includes(req.url)) { res.writeHead(404); res.end(); return; } const value = status(); res.writeHead(req.url === '/ready' && !value.ready ? 503 : 200,{'content-type':'application/json','cache-control':'no-store'}); res.end(JSON.stringify(value)); });
   await new Promise((resolve,reject) => { server.once('error',reject); server.listen(port,'0.0.0.0',resolve); });
   async function finished(role, child, started, code, signal) {
@@ -94,7 +117,7 @@ export async function startOperatorService({ env = process.env, codeDir = CODE, 
     role.child=child; role.state='starting'; role.lastSuccessAt=null; role.lastActivityAt=null; role.lastStatus=null; let done=false,buffer='',discard=false;
     child.stdout?.on('data',chunk=>{
       buffer+=chunk.toString();let newline;
-      while((newline=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);if(!discard&&role.child===child){const safe=parseOperatorHeartbeat(role.name,line);if(safe){role.lastActivityAt=new Date().toISOString();role.lastStatus=safe;const success=role.name==='publisher'||role.name==='keeper'&&safe.status!=='pending-reconciliation'||role.name==='proofSync'&&safe.status==='synchronized';if(success)role.lastSuccessAt=role.lastActivityAt;}}discard=false;}
+      while((newline=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);if(!discard&&role.child===child){const safe=parseOperatorHeartbeat(role.name,line);if(safe){role.lastActivityAt=new Date().toISOString();role.lastStatus=safe;const kind={legacyKeeper:'keeper',legacyPublisher:'publisher',legacyProofSync:'proofSync'}[role.name]||role.name;const success=kind==='publisher'||kind==='keeper'&&safe.status!=='pending-reconciliation'||kind==='proofSync'&&safe.status==='synchronized';if(success)role.lastSuccessAt=role.lastActivityAt;}}discard=false;}
       if(buffer.length>16_384){buffer='';discard=true;}
     });
     child.stderr?.on('data',()=>{}); // Never forward private provider errors to hosted logs.
@@ -103,7 +126,7 @@ export async function startOperatorService({ env = process.env, codeDir = CODE, 
     child.once('error',()=>finish(null,'SPAWN_ERROR')); child.once('exit',finish);
   }
   try {
-    definitions=await inspectFiles(dataDir,codeDir); seeded=true;
+    definitions=await inspectOperatorDefinitions(dataDir,codeDir,{legacyDataDir}); seeded=true;
     if (enabled) {
       // The external kernel lock excludes another supervisor on this volume.
       // A still-live PID fails closed, protecting orphaned children after a crash.

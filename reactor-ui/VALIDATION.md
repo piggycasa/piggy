@@ -38,7 +38,14 @@ The publisher test verifies opening eligibility before fees, exclusion of later 
 
 Fresh actual-chain reports are `.openai/local/solana/reports/{public-wallet-integration,public-wallet-token2022-integration,publisher-integration,keeper-integration}.json`. The public release binary was independently rebuilt with no optional features and matched the recorded source and artifact hashes.
 
-## Actual mainnet launch and limited canary
+## Fresh-launch validation scope
+
+The fresh-launch client selects version `1793155991891`, game PDA `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`, with a separate holder vault and `/launch-proofs/index.json` proof domain. It reuses the same program, mint and reviewed executable. Game initialization, Round 1 opening, operator activation and any fresh-instance transaction checks need their own evidence; selecting the configuration or deriving a Round 1 address does not establish those steps.
+
+The actual feed and claim receipts in the next section belong to pre-launch version `1793081200001`. They remain historical evidence for that instance. Its existing rewards and accounts are preserved at [test-round claims](https://piggy.casa/test-claims/) using the original `/proofs/index.json`. No fresh-instance canary result is inferred from those receipts.
+
+
+## Pre-launch mainnet instance and limited canary
 
 The live program is `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK`, game version `1793081200001`. Deployed ProgramData matched the reviewed feature-free binary and upgrade authority. Mainnet timing is 3,600 seconds initially, 30 seconds per key and an 86,400-second cap. The predictable lottery is disabled; its reserve remains accounted for.
 
@@ -57,7 +64,7 @@ The nine-file server import preserved original S0 at slot `462231588`, its activ
 
 Read-only production QA inspected the desktop page and connected-wallet states at 390×844, 320×568 and 844×390. Mobile checks passed with no page scrolling, no browser errors and zero signing calls; balances, round state, reward dialogs and reconnect state were read from mainnet. These used an injected read-only wallet interface, not a physical mobile wallet. Evidence is `.openai/local/visual-qa/production-mobile/report.json` and production screenshots. An earlier browser canary timed out before signing while waiting for network idle on the polling page. The successful follow-up above used DOM readiness and explicit game-state checks.
 
-### Production token-holder claim: 28 October
+### Pre-launch token-holder claim: 28 October
 
 The actual production game and PIGGY mint were tested through `piggy.casa` using one Node-backed canary wallet. The [holder claim](https://explorer.solana.com/tx/2svi9jfKa3jmiCEUvqq4zyzh1SiWkyFPaLNchQfSLqh5fFaZFDFwWTc2Xmx4Sp3R4M2hwwJqzsqPXdJM3AoUPKLF) finalized at slot **462274354**. It paid **10,000,000 lamports gross** and **8,928,280 lamports net**, after a 10,000-lamport network fee and 1,061,720-lamport permanent receipt rent. The temporary WSOL account closed; all PIGGY balances and token authorities remained unchanged.
 

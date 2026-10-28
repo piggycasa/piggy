@@ -55,7 +55,14 @@ The publisher pairs game/config/vault reads in one finalized bank, checks conser
 
 The keeper has a separate low-balance key, enforces per-transaction and rolling 24-hour fee/rent budgets, and records the signed transaction identity before broadcasting once. It waits for finalized success or blockhash expiry before attempting another action. It reads the canonical on-chain Clock, settles expired rounds, leaves at least eight seconds for the celebration after observing settlement, then creates the next round. This is a continuous operator process; deployment alone does not run it. Monitor balances, process health, pending signatures, unpublished vault funds, proof-host availability and unexpected authority changes. Restart from durable journals, not an empty directory.
 
-## Installed Mainnet services
+## Fresh launch and retained pre-launch claims
+
+The fresh-launch client targets game version `1793155991891`, PDA `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`. It has a separate holder configuration (`JCiKUFDM62yd1VXUzgHTLa6m2Aa82i4fVZwtVXchHxkN`), vault (`D3azZR1kykY8rdabh9iAVmXcuo7rA2LYuDK9moY1mUUB`), opening snapshot, durable journals and `/launch-proofs/index.json` proof route. The program and $PIGGY mint remain the same. Round opening and verified operator activation are separate actions from selecting this configuration.
+
+Version `1793081200001` is the pre-launch instance. Preserve its journals, snapshots, epochs and `/proofs/index.json` export so [existing game and token-holder rewards remain claimable](https://piggy.casa/test-claims/). The legacy keeper supports `settleOnly: true` and `settleOnlyRoundId: "3"`: it pins that round under its lock, waits for the finalized deadline, settles using the existing spending and release guards, then remains terminal without starting another round. Configuration and code support do not by themselves establish that a server cutover has completed.
+
+
+## Pre-launch Mainnet services record
 
 As of 27 October 2026, the Mainnet token, game and holder vault exist. The game uses version `1793081200001`, program `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK` and mint `BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`. S0 was captured at finalized slot `462231588`, with game absence proven at slot `462231590`, before game creation. The first snapshot contains an actual external holder; no operator token purchase was made to create eligibility.
 

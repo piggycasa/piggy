@@ -20,6 +20,8 @@ export const withKeeperLock = withPublisherLock;
 
 export function validateKeeperConfig(raw, { base = process.cwd(), allowLocal = false } = {}) {
   if (raw.schemaVersion !== 1) throw new Error('Keeper schemaVersion must be 1.');
+  if (raw.settleOnly !== undefined && typeof raw.settleOnly !== 'boolean') throw new Error('Keeper settleOnly must be a boolean.');
+  if (raw.settleOnlyRoundId !== undefined && (raw.settleOnly !== true || typeof raw.settleOnlyRoundId !== 'string' || !/^[1-9]\d*$/.test(raw.settleOnlyRoundId) || BigInt(raw.settleOnlyRoundId) > U64_MAX)) throw new Error('Keeper settleOnlyRoundId requires settleOnly:true and a positive u64 string.');
   const url = new URL(raw.rpcUrl);
   const local = allowLocal && raw.cluster === 'localnet' && url.protocol === 'http:' && url.hostname === '127.0.0.1' && url.port === '18899';
   if (!local && (!CLUSTER_GENESIS[raw.cluster] || url.protocol !== 'https:' || isPrivateHost(url.hostname))) throw new Error('Keeper requires an explicit public cluster and HTTPS public RPC.');
@@ -28,7 +30,7 @@ export function validateKeeperConfig(raw, { base = process.cwd(), allowLocal = f
   const config = { ...raw, rpcUrl: url.href, gameVersion: String(raw.gameVersion),
     programId: sdk.pk(raw.programId).toBase58(), piggyMint: sdk.pk(raw.piggyMint).toBase58(), keeperPublicKey: sdk.pk(raw.keeperPublicKey).toBase58(),
     keeperKeypair: path.resolve(base, raw.keeperKeypair), workspace: path.resolve(base, raw.workspace), publisherStateFile: path.resolve(base, raw.publisherStateFile),
-    celebrationSeconds: raw.celebrationSeconds ?? 8, pollSeconds: raw.pollSeconds ?? 2,
+    celebrationSeconds: raw.celebrationSeconds ?? 8, pollSeconds: raw.pollSeconds ?? 2, settleOnly: raw.settleOnly ?? false,
     priorityFeeMicroLamports: raw.priorityFeeMicroLamports ?? 0,
     maxFeeLamportsPerTransaction: validAmount(raw.maxFeeLamportsPerTransaction ?? 100_000, 'transaction fee cap'),
     maxDailyFeeLamports: validAmount(raw.maxDailyFeeLamports ?? 1_000_000, 'rolling daily fee cap'),
@@ -66,7 +68,8 @@ async function save(ctx, stored) { stored.minContextSlot = ctx.minContextSlot; a
 export async function readKeeperState(ctx) {
   if (await ctx.connection.getGenesisHash() !== ctx.config.genesisHash) throw new Error('Keeper RPC changed networks.');
   const configAddress = sdk.holderConfigAddress(ctx.config.programId, ctx.game);
-  const result = await ctx.connection.getMultipleAccountsInfoAndContext([sdk.pk(ctx.config.programId), ctx.game, configAddress, SYSVAR_CLOCK_PUBKEY], { commitment: 'confirmed', minContextSlot: ctx.minContextSlot ?? 0 });
+  const commitment = ctx.config.settleOnly ? 'finalized' : 'confirmed';
+  const result = await ctx.connection.getMultipleAccountsInfoAndContext([sdk.pk(ctx.config.programId), ctx.game, configAddress, SYSVAR_CLOCK_PUBKEY], { commitment, minContextSlot: ctx.minContextSlot ?? 0 });
   if (!Number.isSafeInteger(result.context?.slot) || result.context.slot < (ctx.minContextSlot ?? 0)) throw new Error('Keeper read returned a stale context.');
   const [program, gameInfo, holderInfo, clockInfo] = result.value;
   if (!program?.executable || !gameInfo?.owner.equals(sdk.pk(ctx.config.programId)) || !holderInfo?.owner.equals(sdk.pk(ctx.config.programId))) throw new Error('Keeper deployment is missing or has wrong account owners.');
@@ -78,7 +81,7 @@ export async function readKeeperState(ctx) {
   if (game.round_id > 0n) {
     // Read the selected round and its Clock in one bank. A later round read
     // paired with an older Clock could shorten the celebration below 8 seconds.
-    const synced = await ctx.connection.getMultipleAccountsInfoAndContext([ctx.game, sdk.roundAddress(ctx.config.programId, game.round_id, ctx.config.gameVersion), SYSVAR_CLOCK_PUBKEY], { commitment: 'confirmed', minContextSlot: result.context.slot });
+    const synced = await ctx.connection.getMultipleAccountsInfoAndContext([ctx.game, sdk.roundAddress(ctx.config.programId, game.round_id, ctx.config.gameVersion), SYSVAR_CLOCK_PUBKEY], { commitment, minContextSlot: result.context.slot });
     if (!Number.isSafeInteger(synced.context?.slot) || synced.context.slot < result.context.slot || !synced.value[0]?.owner.equals(sdk.pk(ctx.config.programId))) throw new Error('Keeper round read returned a stale or invalid bank.');
     const syncedGame = sdk.decodeGame(synced.value[0].data); if (syncedGame.round_id !== game.round_id) throw new Error('Keeper round changed during refresh; retry without broadcasting.');
     game = syncedGame; slot = synced.context.slot; clockAccount = synced.value[2]; const info = synced.value[1];
@@ -106,8 +109,9 @@ async function openingSnapshot(ctx) {
   return ctx.verifiedOpening;
 }
 
-export function keeperDecision(current, stored, celebrationSeconds = 8) {
-  if (current.game.round_id === 0n) return { action: 'start', roundId: 1n };
+export function keeperDecision(current, stored, celebrationSeconds = 8, { settleOnly = false } = {}) {
+  if (current.game.round_id === 0n) return settleOnly ? { action: 'quiescent', roundId: 0n, reason: 'no-round' } : { action: 'start', roundId: 1n };
+  if (settleOnly && current.round.ended) return { action: 'legacy-settled', roundId: current.game.round_id };
   if (!stored.activation) throw new Error('Existing public rounds require the verified keeper activation journal. Restore its backup.');
   if (!current.round.ended) return current.chainTime >= Number(current.round.end_time) ? { action: 'settle', roundId: current.game.round_id } : { action: 'wait', reason: 'countdown', seconds: Number(current.round.end_time) - current.chainTime };
   if (stored.observedEnded?.roundId !== current.game.round_id.toString()) return { action: 'observe-ended', roundId: current.game.round_id };
@@ -145,6 +149,7 @@ async function keeperKey(ctx, current, { allowMainnet = false } = {}) {
 export const verifyKeeperProgram = verifyOperatorProgram;
 
 async function submit(ctx, stored, current, decision, key) {
+  if (ctx.config.settleOnly && decision.action !== 'settle') throw new Error('Settle-only keeper cannot start or roll over rounds.');
   await verifyKeeperProgram(ctx, Math.max(ctx.minContextSlot, current.slot));
   const ix = decision.action === 'settle' ? sdk.endRoundInstruction({ programId: ctx.config.programId, version: ctx.config.gameVersion, roundId: decision.roundId, winner: current.round.lead_player_pk === ZERO ? undefined : current.round.lead_player_pk }) : sdk.initializeRoundInstruction({ programId: ctx.config.programId, payer: key.publicKey, version: ctx.config.gameVersion, roundId: decision.roundId });
   const rentLamports = decision.action === 'start' ? await ctx.connection.getMinimumBalanceForRentExemption(403, 'confirmed') + await ctx.connection.getMinimumBalanceForRentExemption(165, 'confirmed') : 0;
@@ -172,14 +177,70 @@ async function submit(ctx, stored, current, decision, key) {
   } catch (error) { return { status: 'pending-reconciliation', signature, warning: error.message }; }
 }
 
+function legacyMaintenance(stored, configuredTarget) {
+  const value = stored.legacyMaintenance;
+  if (!value) return null;
+  if (!/^(0|[1-9]\d*)$/.test(value.targetRoundId) || BigInt(value.targetRoundId) > U64_MAX || !Number.isSafeInteger(value.pinnedSlot) || value.pinnedSlot < 1) throw new Error('Invalid settle-only keeper journal target.');
+  if (configuredTarget !== undefined && value.targetRoundId !== configuredTarget) throw new Error('Configured settle-only round differs from the pinned keeper journal target.');
+  const done = value.terminal;
+  if (done && (!['legacy-settled','quiescent'].includes(done.status) || done.roundId !== value.targetRoundId || !Number.isSafeInteger(done.finalizedSlot) || done.finalizedSlot < value.pinnedSlot || !Number.isSafeInteger(done.chainTime) || done.chainTime < 1 || (done.status === 'quiescent') !== (value.targetRoundId === '0'))) throw new Error('Invalid settle-only keeper terminal receipt.');
+  return value;
+}
+
+async function readLegacyTarget(ctx, current, target) {
+  if (target === 0n || current.game.round_id === target) return current;
+  if (current.game.round_id < target) throw new Error('Keeper finalized round predates its pinned legacy target.');
+  // Somebody else may have settled and advanced the game while we were offline.
+  // Prove the pinned round ended; never adopt the later active round.
+  const result = await ctx.connection.getMultipleAccountsInfoAndContext([sdk.roundAddress(ctx.config.programId, target, ctx.config.gameVersion), SYSVAR_CLOCK_PUBKEY], { commitment: 'finalized', minContextSlot: Math.max(ctx.minContextSlot, current.slot) });
+  const [info, clock] = result.value ?? [];
+  if (!Number.isSafeInteger(result.context?.slot) || result.context.slot < Math.max(ctx.minContextSlot, current.slot) || !info?.owner.equals(sdk.pk(ctx.config.programId)) || !clock?.owner.equals(sdk.pk('Sysvar1111111111111111111111111111111111111')) || clock.data.length < 40) throw new Error('Keeper cannot verify its finalized legacy round.');
+  const round = sdk.decodeRound(info.data), chainTime = Number(Buffer.from(clock.data).readBigInt64LE(32));
+  if (round.round_id !== target || !round.ended || !Number.isSafeInteger(chainTime) || chainTime < 1) throw new Error('Keeper pinned legacy round has no finalized end.');
+  return { ...current, game: { ...current.game, round_id: target }, round, chainTime, slot: result.context.slot };
+}
+
+async function settleOnlyTick(ctx, stored, opening, observed, options) {
+  let legacy = legacyMaintenance(stored, ctx.config.settleOnlyRoundId);
+  if (!legacy) {
+    const target = ctx.config.settleOnlyRoundId === undefined ? observed.game.round_id : BigInt(ctx.config.settleOnlyRoundId);
+    if (target > observed.game.round_id) throw new Error('Settle-only keeper cannot pin a future round.');
+    legacy = stored.legacyMaintenance = { targetRoundId: target.toString(), pinnedSlot: observed.slot, terminal: null };
+    ctx.minContextSlot = Math.max(ctx.minContextSlot, observed.slot); await save(ctx, stored);
+  }
+  if (legacy.terminal) return { ...legacy.terminal, settleOnly: true };
+  const current = await readLegacyTarget(ctx, observed, BigInt(legacy.targetRoundId));
+  const decision = BigInt(legacy.targetRoundId) === 0n ? { action: 'quiescent', roundId: 0n, reason: 'no-round' } : keeperDecision(current, stored, ctx.config.celebrationSeconds, { settleOnly: true });
+  if (['quiescent','legacy-settled'].includes(decision.action)) {
+    legacy.terminal = { status: decision.action, roundId: legacy.targetRoundId, chainTime: current.chainTime, finalizedSlot: current.slot };
+    ctx.minContextSlot = Math.max(ctx.minContextSlot, current.slot); await save(ctx, stored);
+    return { ...legacy.terminal, settleOnly: true };
+  }
+  if (stored.activation.snapshotSlot !== opening.slot || stored.activation.snapshotHash !== opening.hash) throw new Error('Keeper activation snapshot changed. Restore verified history.');
+  if (decision.action === 'wait') return { status: 'waiting', ...decision, settleOnly: true, roundId: legacy.targetRoundId };
+  const key = await keeperKey(ctx, current, options);
+  return submit(ctx, stored, current, decision, key);
+}
+
 export async function keeperStatus(ctx) {
+  if (ctx.config.settleOnly) {
+    const stored = await journal(ctx), legacy = legacyMaintenance(stored, ctx.config.settleOnlyRoundId);
+    if (legacy?.terminal) return { ...legacy.terminal, settleOnly: true };
+    const opening = await openingSnapshot(ctx), observed = await readKeeperState(ctx), target = legacy?.targetRoundId ?? ctx.config.settleOnlyRoundId;
+    if (target !== undefined && BigInt(target) > observed.game.round_id) throw new Error('Settle-only keeper cannot pin a future round.');
+    const current = target === undefined ? observed : await readLegacyTarget(ctx, observed, BigInt(target));
+    const decision = target === '0' ? { action: 'quiescent', roundId: 0n, reason: 'no-round' } : keeperDecision(current, stored, ctx.config.celebrationSeconds, { settleOnly: true });
+    return { status: stored.pending ? 'pending-reconciliation' : ['quiescent','legacy-settled'].includes(decision.action) ? decision.action : 'ready', settleOnly: true, cluster: ctx.config.cluster, keeper: ctx.config.keeperPublicKey, roundId: (legacy?.targetRoundId ?? current.game.round_id.toString()), chainTime: current.chainTime, finalizedSlot: current.slot, snapshotSlot: opening.slot, activated: !!stored.activation, pending: stored.pending?.signature ?? null, spending: keeperSpending(stored, current.chainTime), decision };
+  }
   const stored = await journal(ctx), opening = await openingSnapshot(ctx), current = await readKeeperState(ctx);
   return { status: stored.pending ? 'pending-reconciliation' : 'ready', cluster: ctx.config.cluster, keeper: ctx.config.keeperPublicKey, roundId: current.game.round_id.toString(), chainTime: current.chainTime, snapshotSlot: opening.slot, activated: !!stored.activation, pending: stored.pending?.signature ?? null, spending: keeperSpending(stored, current.chainTime), decision: keeperDecision(current, stored, ctx.config.celebrationSeconds) };
 }
 export async function keeperTick(ctx, options = {}) {
   const stored = await journal(ctx); await reconcileKeeper(ctx, stored);
   if (stored.pending) return { status: 'pending-reconciliation', signature: stored.pending.signature };
+  if (ctx.config.settleOnly && legacyMaintenance(stored, ctx.config.settleOnlyRoundId)?.terminal) return { ...stored.legacyMaintenance.terminal, settleOnly: true };
   const opening = await openingSnapshot(ctx), current = await readKeeperState(ctx);
+  if (ctx.config.settleOnly) return settleOnlyTick(ctx, stored, opening, current, options);
   const key = await keeperKey(ctx, current, options);
   if (stored.activation && (stored.activation.snapshotSlot !== opening.slot || stored.activation.snapshotHash !== opening.hash)) throw new Error('Keeper activation snapshot changed. Restore verified history.');
   if (!stored.activation) {

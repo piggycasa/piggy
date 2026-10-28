@@ -1,0 +1,9 @@
+.test-claims-link{display:inline-flex;align-items:center;min-height:44px;font-size:12px;color:var(--kb-yellow);text-decoration:underline;text-underline-offset:4px}
+.test-claims-mode #arena,.test-claims-mode .live-footer,.test-claims-mode .test-claims-link{display:none!important}
+.test-claims-mode .topbar nav>a,.test-claims-mode .topbar nav>button:not(.wallet-button){display:none!important}
+.test-claims-landing{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;min-height:0;padding:18px}
+.test-claims-landing h1{font:400 clamp(27px,5vw,56px)/1.1 var(--font-display);letter-spacing:-1px}
+.test-claims-landing p{font:400 17px/1.5 var(--font-control);color:#e1dbff;max-width:43ch}
+.test-claims-landing button{min-height:48px;padding:12px 20px;border:0;border-radius:6px;background:var(--pig-lime);color:var(--pig-ink);font:500 16px var(--font-control)}
+.test-claims-landing>a{min-height:44px;display:flex;align-items:center;font-size:14px;text-decoration:underline;text-underline-offset:4px}
+@media(max-height:500px){.test-claims-landing{gap:8px}.test-claims-landing h1{font-size:26px}.test-claims-landing p{font-size:13px;max-width:50ch}}

@@ -86,3 +86,53 @@ test('heartbeats accept complete known JSON only and never expose arbitrary fiel
   assert.equal(service.status().ready,true);assert.equal(JSON.stringify(service.status()).includes('SECRET'),false);
   assert.equal(service.status().roles.proofSync.lastSuccessAt,null);
 });
+
+async function legacyPair(t){
+  const f=await fixture(t),old=await fixture(t);
+  const change=async(root,name,update)=>{const file=path.join(root,name),value=JSON.parse(await fs.readFile(file,'utf8'));update(value);await fs.writeFile(file,JSON.stringify(value),{mode:0o600});};
+  await change(f.dataDir,'configs/keeper.active.json',v=>{v.maxDailyRentLamports=107442240;v.maxDailyFeeLamports=470000;});
+  for(const name of ['configs/keeper.active.json','configs/publisher.active.json'])await change(old.dataDir,name,v=>{v.gameVersion='2';if(name.includes('keeper')){v.settleOnly=true;v.maxDailyRentLamports=12557760;v.maxDailyFeeLamports=30000;}});
+  await change(old.dataDir,'migration.json',v=>{v.domain.gameVersion='2';});
+  await change(old.dataDir,'proof-upload-config.json',v=>{v.siteUrl='https://legacy-piggy.example';});
+  for(const role of ['keeper','publisher'])await fs.copyFile(path.join(old.dataDir,`configs/${role}.active.json`),path.join(old.dataDir,`configs/${role}.legacy.json`));
+  // The production fresh instance is a child of the old mounted data root.
+  const nested=path.join(old.dataDir,'instances/new');await fs.mkdir(path.dirname(nested),{recursive:true});await fs.rename(f.dataDir,nested);f.dataDir=nested;f.env.PIGGY_OPERATOR_DATA_DIR=nested;
+  f.env.PIGGY_OPERATOR_LEGACY_DATA_DIR=old.dataDir;f.env.PIGGY_OPERATOR_LEGACY_LOCK_HELD='1';
+  const edit=async(root,name,update)=>{await change(root,name,update);if(root===old.dataDir&&name.endsWith('.active.json'))await fs.copyFile(path.join(root,name),path.join(root,name.replace('.active.json','.legacy.json')));};
+  return{...f,legacyDir:old.dataDir,change:edit};
+}
+
+test('optional legacy roles supervise an independent game and accept terminal keeper quiescence',async t=>{
+  const f=await legacyPair(t),service=await startOperatorService({...f,isAlive:()=>false,log:()=>{}});t.after(()=>service.stop());await delay(1);
+  assert.equal(f.spawnCalls.length,6);assert.deepEqual(Object.keys(service.status().roles),['keeper','publisher','proofSync','legacyKeeper','legacyPublisher','legacyProofSync']);
+  assert.equal(f.spawnCalls[0].args.includes(path.join(await fs.realpath(f.dataDir),'configs/keeper.active.json')),true);assert.equal(f.spawnCalls[3].args.includes(path.join(await fs.realpath(f.legacyDir),'configs/keeper.legacy.json')),true);
+  for(const[i,value]of[[0,{status:'waiting',reason:'countdown'}],[1,{status:'waiting-for-cadence'}],[3,{status:'legacy-settled',roundId:'3'}],[4,{status:'waiting-for-funded-threshold',available:'0'}]])f.children[i].stdout.emit('data',Buffer.from(JSON.stringify(value)+'\n'));
+  assert.equal(service.status().ready,true);assert.equal(service.status().roles.legacyKeeper.lastStatus.status,'legacy-settled');await delay(10);assert.equal(f.spawnCalls.length,6);
+  await service.stop();for(const child of f.children)assert.deepEqual(child.kills,['SIGTERM']);
+});
+
+test('legacy startup requires both kernel locks and never starts a partial role set',async t=>{
+  const f=await legacyPair(t);delete f.env.PIGGY_OPERATOR_LEGACY_LOCK_HELD;await assert.rejects(startOperatorService({...f,log:()=>{}}),/independent.*kernel lock/);assert.equal(f.spawnCalls.length,0);
+});
+
+test('legacy normal-rollover, mixed domains, same proof origin and doubled budgets fail before spawning',async t=>{
+  for(const mutate of[
+    f=>f.change(f.legacyDir,'configs/keeper.active.json',v=>{v.settleOnly=false;}),
+    async f=>{for(const name of ['configs/keeper.active.json','configs/publisher.active.json'])await f.change(f.legacyDir,name,v=>{v.gameVersion='1';});await f.change(f.legacyDir,'migration.json',v=>{v.domain.gameVersion='1';});},
+    async f=>{for(const name of ['configs/keeper.active.json','configs/publisher.active.json'])await f.change(f.legacyDir,name,v=>{v.piggyMint='other-mint';});await f.change(f.legacyDir,'migration.json',v=>{v.domain.piggyMint='other-mint';});},
+    f=>f.change(f.legacyDir,'proof-upload-config.json',v=>{v.siteUrl='https://piggy.example';}),
+    f=>f.change(f.legacyDir,'configs/keeper.active.json',v=>{v.maxDailyRentLamports=120000000;}),
+    f=>f.change(f.legacyDir,'configs/keeper.active.json',v=>{v.maxDailyFeeLamports=500000;}),
+  ]){const f=await legacyPair(t);await mutate(f);const service=await startOperatorService({...f,isAlive:()=>false,log:()=>{}});assert.equal(service.status().ready,false);assert.equal(f.spawnCalls.length,0);await service.stop();}
+});
+
+test('a legacy alias of the new keeper journal is rejected even under a shared parent volume',async t=>{
+  const f=await legacyPair(t);await f.change(f.legacyDir,'configs/keeper.active.json',v=>{v.workspace=path.join(f.dataDir,'keeper-state');});
+  const service=await startOperatorService({...f,isAlive:()=>false,log:()=>{}});t.after(()=>service.stop());assert.equal(service.status().ready,false);assert.equal(f.spawnCalls.length,0);
+});
+
+test('legacy heartbeat filtering keeps terminal status but strips private fields',()=>{
+  assert.deepEqual(parseOperatorHeartbeat('legacyKeeper','{"status":"quiescent","roundId":"0","private":"SECRET"}'),{status:'quiescent',roundId:'0'});
+  assert.deepEqual(parseOperatorHeartbeat('legacyPublisher','{"status":"published","epoch":"4","rpc":"SECRET"}'),{status:'published',epoch:'4'});
+  assert.equal(parseOperatorHeartbeat('legacyProofSync','{"status":"unknown","secret":"SECRET"}'),null);
+});

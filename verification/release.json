@@ -30,7 +30,22 @@
   "sourceAccess": "public",
   "sourcePath": "program",
   "sourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
-  "gameVersion": "1793081200001",
-  "gameAccount": "FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm",
-  "piggyMint": "BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA"
+  "gameVersion": "1793155991891",
+  "gameAccount": "GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g",
+  "piggyMint": "BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA",
+  "legacyGame": {
+    "gameVersion": "1793081200001",
+    "gameAccount": "FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm",
+    "claimUrl": "https://piggy.casa/test-claims/",
+    "proofIndexUrl": "https://piggy.casa/proofs/index.json",
+    "holderConfig": "DM7CNc7Akrjf8eCV7KFcQxbnNCGo9ZPdryXgBzbN2c6v",
+    "holderVault": "31xpNiqj2vcRAMQyQMNyvRDZyw2fTSZhgYAAs2ZptsF3"
+  },
+  "holderConfig": "JCiKUFDM62yd1VXUzgHTLa6m2Aa82i4fVZwtVXchHxkN",
+  "holderVault": "D3azZR1kykY8rdabh9iAVmXcuo7rA2LYuDK9moY1mUUB",
+  "initialRound": {
+    "roundId": "1",
+    "roundAccount": "6TPGnFDLTA5CV1wxtyzySewGCEF8Q5wKr1755fWYwBsb",
+    "potAccount": "2p4TZ1Q369HWFih53xAM8TyUztsbdpwddoZHNbDriJNG"
+  }
 }

@@ -28,3 +28,8 @@ A matching source digest identifies this publication's Rust inputs. A matching o
 No independent security audit is published. The program retains an upgrade authority that can replace it without an enforced timelock. Token-holder allocation accuracy trusts a snapshot publisher, which the game creator can replace. Current claims verify funding and Merkle proofs but do not independently prove historical token ownership or proportional allocation. The lottery is disabled; jackpot ordering remains exposed to bots and congestion. Matching bytes, public source and passing tests do not establish fairness or guarantee returns.
 
 The website's [release check](https://piggy.casa/verify/) is convenient, but this helper can use an independent RPC and does not rely on the website's RPC proxy. [Solana's verified-build documentation](https://solana.com/docs/programs/verified-builds) describes a separate independent build process.
+
+
+## Fresh launch game and previous claims
+
+The current game account is `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g` (version `1793155991891`). The previous pre-launch game `FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm` (version `1793081200001`) is retained for game and token-holder claims at [piggy.casa/test-claims/](https://piggy.casa/test-claims/). The games use the same program and $PIGGY mint, with separate proof indexes and operator journals. Historical balances and transactions are preserved.

@@ -4,6 +4,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/test-claims",
+      "destination": "/index.html"
+    },
+    {
       "source": "/verify",
       "destination": "/verify/index.html"
     },
@@ -18,6 +22,10 @@
     {
       "source": "/proofs/:path*",
       "destination": "https://piggy-play.windyhen258.chatgpt.site/proofs/:path*"
+    },
+    {
+      "source": "/launch-proofs/:path*",
+      "destination": "https://piggy-launch-proofs.windyhen258.chatgpt.site/proofs/:path*"
     }
   ]
 }

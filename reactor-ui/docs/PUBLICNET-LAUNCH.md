@@ -203,3 +203,12 @@ The output is ignored `.openai/local/pump-launch/<cluster>/`: `create-v2-review.
 The prepared SOL-paired coin has 6 decimals. On 27 October the live global supply was `1000000000000000` base units, or one billion whole tokens. Mayhem and deprecated cashback are false. Pump's separate permanent holder-reward launch option is false unless explicitly selected with `--holder-reward true`; review it before launch because it changes who receives Pump trade creator fees. It does not enable or replace PIGGY's game-fee holder claims.
 
 The current official [Pump fee page](https://pump.fun/docs/fees) lists no platform creation charge; account rent and transaction fees still apply. The unsigned two-signer instruction quoted 10,000 lamports of base network fee; this excludes rent, priority fees and a first buy. The review reserves a provisional 0.05 SOL for account creation, fees and retries. That is an operational allowance, not an exact Pump charge. No initial buy budget is chosen or encoded. Final payer simulation and a fresh fee quote are required before spending. Official instruction reference: [Pump coin creation](https://github.com/pump-fun/pump-public-docs/blob/main/docs/instructions/COIN_CREATION.md).
+
+
+## Fresh-launch configuration: 28 October 2026
+
+The production client configuration targets game version `1793155991891`, game PDA `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`, under the same reviewed program and $PIGGY mint. Its holder configuration is `JCiKUFDM62yd1VXUzgHTLa6m2Aa82i4fVZwtVXchHxkN`, holder vault is `D3azZR1kykY8rdabh9iAVmXcuo7rA2LYuDK9moY1mUUB`, and proof index is `/launch-proofs/index.json`.
+
+Round 1 derives to `6TPGnFDLTA5CV1wxtyzySewGCEF8Q5wKr1755fWYwBsb`, with pot `2p4TZ1Q369HWFih53xAM8TyUztsbdpwddoZHNbDriJNG`. These derived addresses identify the intended accounts; opening the round requires its own confirmed initialization transaction. Game initialization, round opening, funded claims and operator activation are separate launch checks.
+
+The previous version `1793081200001` retains its accounts and reward entitlements. Existing game and holder rewards remain available through [test-round claims](https://piggy.casa/test-claims/) using `/proofs/index.json`. Keep the two proof domains and operator journals separate. The dated receipts below belong to that pre-launch instance and do not establish fresh-instance canary results.

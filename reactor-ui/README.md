@@ -2,9 +2,10 @@
 
 PIGGY is live at [piggy.casa](https://piggy.casa). It combines the original Solana Fomo3D curve and four payout modes with the piggy-bank game and adapted Konterball interface. Production entries use SOL and transactions are signed through the visitor's wallet.
 
-- Mainnet program: `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK`; game version: `1793081200001`.
+- Mainnet program: `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK`; fresh-launch game version: `1793155991891`.
+- Fresh-launch game account: `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g`. The [pre-launch reward claims](https://piggy.casa/test-claims/) remain on version `1793081200001`; their accounts and balances are preserved.
 - $PIGGY mint: [`BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA`](https://pump.fun/coin/BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA). Pump creation finalized with no initial token purchase: Token-2022, six decimals, one billion tokens.
-- Real mainnet feeds, game-reward claims and a production $PIGGY-holder claim finalized. The holder test used disclosed sponsored vault funding; its token-preservation and duplicate-claim checks passed. Testnet remains unverified; these results are not an independent audit.
+- On the pre-launch instance, real mainnet feeds, game-reward claims and a $PIGGY-holder claim finalized. The holder test used disclosed sponsored vault funding; its token-preservation and duplicate-claim checks passed. Those receipts belong to the pre-launch instance; fresh-instance activation and transaction checks are separate. Testnet remains unverified; these results are not an independent audit.
 
 ## Run and verify
 
