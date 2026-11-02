@@ -1,0 +1,13 @@
+{
+  "matches": true,
+  "programId": "3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK",
+  "finalizedSlot": 462301599,
+  "deploymentSlot": "462227427",
+  "bytes": 267648,
+  "sha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65",
+  "upgradeAuthority": "AaD3ws5nVeUntDpmciiqx5NxYQKpN6idm59j6SJ7SZdX",
+  "authorityMatchesObservation": true,
+  "independentSourceBuildVerified": false,
+  "observedAt": "2026-10-28T02:08:23.859094+00:00",
+  "readOnly": true
+}

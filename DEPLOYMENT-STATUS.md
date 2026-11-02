@@ -1,7 +1,12 @@
-# Deployment status on 28 October 2026
+# Deployment status — 2 November 2026
 
-The previous PIGGY program was permanently closed. Its game entries and claims are no longer available. Historical evidence in this repository describes that retired deployment.
+- Mainnet program: `BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph`.
+- ProgramData: `9ZFD4RMsiidwceQPBuDaxiqeXRpNaSk2fmRAoy5uJpkJ`.
+- Same 267,648-byte executable; no program redeployment or upgrade for the clock change.
+- Approved initialization: **300-second start, 30 seconds per key, 600-second remaining cap**. Original curve and payout tables are unchanged.
+- New game not initialized; new token mint not supplied. Operator activation and fresh Mainnet transaction tests are still pending.
+- The website countdown is scheduled for **2 November 2026 at 21:00 Europe/London**. Reaching zero does not automatically open the game.
+- Public source includes `launch-site/` for the current holding page/countdown and `reactor-ui/` for the game and operators. Branding/font assets remain in the interface's public assets.
+- Previous PIGGY program is permanently retired. Old claims are unavailable; archived test evidence is explicitly historical.
 
-The replacement program is `BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph`. Its bytecode has been verified against the reviewed artifact. The new game and token eligibility have not yet been initialized. No new token mint is announced by these preparation files.
-
-The website is a holding page while the replacement launch is prepared. See `reactor-ui/docs/RELAUNCH.md` for the mint-binding and operator workflow.
+Use [read-only verification](docs/VERIFICATION.md) or the website's [Check live program](https://piggy.casa/verify/). Matching executable bytes is not an independent source build or a security audit.

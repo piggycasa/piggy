@@ -14,7 +14,7 @@ The second checks mainnet genesis and the finalized upgradeable-loader accounts,
 You can also use Solana CLI independently:
 
 ```sh
-solana --url https://api.mainnet-beta.solana.com program dump 3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK /tmp/piggy-mainnet.so
+solana --url https://api.mainnet-beta.solana.com program dump BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph /tmp/piggy-mainnet.so
 shasum -a 256 /tmp/piggy-mainnet.so
 wc -c /tmp/piggy-mainnet.so
 ```
@@ -30,6 +30,10 @@ No independent security audit is published. The program retains an upgrade autho
 The website's [release check](https://piggy.casa/verify/) is convenient, but this helper can use an independent RPC and does not rely on the website's RPC proxy. [Solana's verified-build documentation](https://solana.com/docs/programs/verified-builds) describes a separate independent build process.
 
 
-## Fresh launch game and previous claims
+## Current launch state — 2 November 2026
 
-The current game account is `GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g` (version `1793155991891`). The previous pre-launch game `FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm` (version `1793081200001`) is retained for game and token-holder claims at [piggy.casa/test-claims/](https://piggy.casa/test-claims/). The games use the same program and $PIGGY mint, with separate proof indexes and operator journals. Historical balances and transactions are preserved.
+The replacement Mainnet program is deployed, but the new game is not initialized and the new token mint has not been supplied. The planned game timing is 300 seconds initially, 30 seconds added per key and a 600-second remaining-time cap. These are initialization parameters supported by the unchanged executable, not a new program deployment.
+
+The countdown at piggy.casa targets 21:00 Europe/London on 2 November 2026. Reaching zero does not initialize the game or enable deposits. It shows that the scheduled time has arrived and awaits launch confirmation.
+
+Previous verification records are archived under `verification/history/retired-20261028/`. They describe the retired program; its claims are unavailable. Historical transaction tests do not verify the replacement game's claims.

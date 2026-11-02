@@ -69,7 +69,7 @@ if (suppliedConfig && network) {
       if (game.p3d_wallet !== holder.vault) throw new Error('Original P3D fee destination is not the holder vault.');
       if (holder.vault !== sdk.holderVaultAddress(c.programId, gameAddress).toBase58() || holder.total_published < holder.total_claimed || holder.total_published - holder.total_claimed !== holder.reserved_amount) throw new Error('Canonical holder vault or published/claimed/reserved accounting does not reconcile.');
       if (cluster === 'mainnet-beta') {
-        validateMainnetGameConfiguration(game, holder, expectedAuthorities);
+        validateMainnetGameConfiguration(game, holder, expectedAuthorities, c.gameTiming);
         const community = await getAccount(conn, new PublicKey(game.community_wallet), 'confirmed');
         if (community.mint.toBase58() !== sdk.NATIVE_MINT.toBase58() || community.owner.toBase58() !== expectedAuthorities.communityTreasury) throw new Error('Mainnet community token-account mint or owner differs from the reviewed treasury.');
       }

@@ -66,7 +66,7 @@ export async function readPublisherFunding(ctx) {
   if(!gameInfo?.owner.equals(sdk.pk(ctx.domain.programId))||!holderInfo?.owner.equals(sdk.pk(ctx.domain.programId)))throw new Error('Unexpected publisher program account owner.');
   const game=sdk.decodeGame(gameInfo.data),holder=sdk.decodeHolderConfig(holderInfo.data);
   if(game.version!==BigInt(ctx.config.gameVersion)||game.mint!==sdk.NATIVE_MINT.toBase58()||holder.game!==ctx.game.toBase58()||holder.eligibility_mint!==ctx.domain.piggyMint||holder.payment_mint!==sdk.NATIVE_MINT.toBase58()||holder.vault!==vaultAddress.toBase58()||game.p3d_wallet!==holder.vault)throw new Error('Publisher game/holder deployment mismatch.');
-  if(ctx.domain.cluster==='mainnet-beta')validateMainnetGameConfiguration(game,holder,ctx.config.expectedAuthorities);
+  if(ctx.domain.cluster==='mainnet-beta')validateMainnetGameConfiguration(game,holder,ctx.config.expectedAuthorities,ctx.config.gameTiming);
   const vault=unpackAccount(vaultAddress,vaultInfo,sdk.TOKEN_PROGRAM_ID);
   if(!vault.isInitialized||vault.isFrozen||!vault.owner.equals(ctx.holderAddress)||!vault.mint.equals(sdk.NATIVE_MINT)||vault.delegate||vault.closeAuthority)throw new Error('Unexpected holder vault authority or payment mint.');
   if(vault.amount<holder.reserved_amount||holder.total_published-holder.total_claimed!==holder.reserved_amount)throw new Error('Holder vault is underfunded or reservations are inconsistent.');

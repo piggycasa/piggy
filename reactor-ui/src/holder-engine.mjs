@@ -40,12 +40,13 @@
  * = totalSupply. All earned/allocated/gross counters are metrics, not funds.
  */
 
+import { PIGGY_TIMING } from './game-timing.mjs';
 import { costForExactKeys } from './solana-curve.mjs';
 
 export const CREDIT_SCALE = 1_000_000_000;
-export const KEY_EXTENSION_MS = 30_000;
-export const MAX_REMAINING_MS = 86_400_000;
-export const NEW_ROUND_DURATION_MS = 3_600_000;
+export const KEY_EXTENSION_MS = PIGGY_TIMING.incrementSeconds * 1000;
+export const MAX_REMAINING_MS = PIGGY_TIMING.maxSeconds * 1000;
+export const NEW_ROUND_DURATION_MS = PIGGY_TIMING.initialSeconds * 1000;
 export const MAX_KEYS_PER_PURCHASE = 10_000;
 
 function mode(id, name, key, originalHolder, pot, finalKey, finalHolder, finalRollover) {
@@ -166,6 +167,8 @@ export function createGame(now, { seeded = true } = {}) {
   ] : []) {
     applyPurchase(state, id, quotePurchase(state, count, id, team), state.round.startedAt + elapsed, true);
   }
+  // The explicitly simulated opening scene starts near its finish; live rounds use on-chain time.
+  if (seeded) state.round.endsAt = now + 87_000;
   state.lastActionAt = now;
   return state;
 }

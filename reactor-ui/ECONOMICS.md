@@ -1,3 +1,5 @@
+> **Current relaunch status (2 November 2026):** The previous deployment described below is retired. The replacement program is deployed but not yet initialized; its new mint is pending. Approved timing is 300 / 30 / 600 seconds. Original curve and payout percentages are unchanged. The remaining deployment anecdotes are historical, not evidence that the new game is live.
+
 # PIGGY — feeds, $PIGGY and SOL rewards
 
 **Feed Piggy. Take the crown.** Each SOL feed adds time, takes the lead and establishes or increases the feeder's cut of game rewards. The last feeder at zero receives the displayed pot under the historical Fomo3D payout rules below. The game is live at [piggy.casa](https://piggy.casa), using the visitor's wallet on mainnet. Program `3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK` runs game version `1793081200001`. The separate local validator and `?demo=1` browser concept remain development tools.

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PIGGY — Asset credits</title>
+  <style>
+    :root{font-family:system-ui,sans-serif;color:#fff;background:#2f2475;color-scheme:dark}body{max-width:760px;margin:0 auto;padding:40px 24px;line-height:1.65}h1{line-height:1.1}h2{margin-top:2em;font-size:1.2rem}a{color:#f9fc56}code{overflow-wrap:anywhere}p,li{color:#ffffffd9}small{color:#ffffffb3}
+  </style>
+</head>
+<body>
+  <h1>PIGGY — Asset credits</h1>
+  <p>PIGGY’s interface, model, pig logo and rendering dependencies have separate sources and licences.</p>
+
+  <h2>Konterball interface and screen transitions</h2>
+  <p>Adapted from <a href="https://konterball.com/">Konterball</a>, WILD's Google WebVR experiment. <a href="https://github.com/madebywild/konterball/tree/1b1a54aec27f36c4337f4206eb35938f530e847a">Source revision: 1b1a54aec27f36c4337f4206eb35938f530e847a</a>. Selected interface styles, the staggered screen-transition sequence and original back-arrow SVG are reused or adapted under the <a href="/licenses/konterball-MIT.txt">MIT licence</a>.</p>
+  <p>Changes include PIGGY game controls, Web Animations transitions, free font replacements and portrait layout. The original commissioned music and proprietary font files are not included.</p>
+
+  <h2>Piggy Bank Glass</h2>
+  <p><a href="https://sketchfab.com/3d-models/piggy-bank-glass-08f40fd84cd74766989c99c2afdd6ab7">Piggy Bank Glass</a> by <a href="https://sketchfab.com/tomgeurts">tomgeurts</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>. The source mesh is retained; runtime changes adjust its scale, placement, orientation and glass material.</p>
+  <p>The PIGGY mark and favicon adapt that same mesh: orthographic projection, merged triangle silhouettes, simplified vector outlines and white/yellow recolouring on transparent or purple backgrounds. These derived logo assets retain the source model's CC BY 4.0 attribution.</p>
+
+  <h2>Rendering and physics</h2>
+  <ul>
+    <li><a href="https://github.com/pmndrs/drei-vanilla">Poimandres Drei-vanilla</a>: MeshTransmissionMaterial shader by N8Programs and the official backside/front capture setup. <a href="/licenses/poimandres-MIT.txt">MIT notice</a>.</li>
+    <li><a href="https://github.com/pmndrs/examples/tree/main/examples/aquarium">Poimandres Aquarium</a>: adapted studio-light placement. No Aquarium model assets are included. <a href="/licenses/poimandres-examples-MIT.txt">MIT notice</a>.</li>
+    <li><a href="https://github.com/dimforge/rapier.js">Rapier3D</a>: rigid-body coin simulation. <a href="/licenses/rapier-LICENSE.txt">Apache 2.0 licence</a>.</li>
+  </ul>
+  <h2>Solana coin emblem</h2>
+  <p>The coin faces use the exact path from the <a href="https://solana.com/src/img/branding/solanaLogoMark.svg">official Solana Foundation logomark</a>, retained as an <a href="/brands/solana-mark.svg">unchanged reference SVG</a>. Its three bars are extruded into both faces of the procedural gold coins, including the jackpot animation. <a href="https://solana.com/branding">Brand reference</a>. The Solana name and logo belong to their respective owners; displaying the mark does not imply endorsement.</p>
+
+  <h2>Fonts</h2>
+  <ul>
+    <li><a href="https://github.com/indestructible-type/Jost">Jost</a>, copyright 2020 The Jost Project Authors. Bundled through Fontsource. <a href="/licenses/jost-OFL.txt">SIL Open Font License 1.1</a>.</li>
+    <li><a href="https://github.com/Omnibus-Type/ArchivoBlack">Archivo Black</a>, copyright 2017 The Archivo Black Project Authors. Bundled through Fontsource. <a href="/licenses/archivo-black-OFL.txt">SIL Open Font License 1.1</a>.</li>
+  </ul>
+
+  <p><a href="/asset-credits.txt">Plain-text credits</a></p>
+  <small>Other dependencies retain their respective licences. Interface reuse does not grant a licence for the separate upstream Solana Fomo3D program.</small>
+</body>
+</html>

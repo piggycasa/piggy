@@ -21,3 +21,7 @@ The original external-upload mode remains the default for compatibility. Retired
 ## Launch gates
 
 The token must exist before its supply and ownership snapshot can be checked. No round is opened merely by deploying the executable or preparing these files. The hosting account must be authorised for the actual production project, and the operator image must be successfully deployed. Provider errors do not count as completed launch steps.
+
+## Approved timing — 2 November 2026
+
+The relaunch uses `gameTiming: { initialSeconds: 300, incrementSeconds: 30, maxSeconds: 600 }`. The initializer, publisher, keeper and preflight check this profile explicitly. The deployed executable, original curve and payout tables are unchanged. This is a game-account initialization setting; it is not a new binary deployment. The new mint and pre-game ownership snapshot are still required before initialization.

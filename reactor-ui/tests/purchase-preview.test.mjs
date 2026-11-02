@@ -8,7 +8,7 @@ const NOW = 1_800_000_000_000;
 function emptyRound() {
   const state = createGame(NOW);
   for (const player of Object.values(state.players)) { player.keys = 0; player.referral = null; player.roundContribution = 0; }
-  Object.assign(state.round, { totalKeys: 0, pot: 0, openingRollover: 0, grossEntries: 0, lastBuyerId: null, lastBuyerTeam: null, endsAt: NOW + 3_600_000 });
+  Object.assign(state.round, { totalKeys: 0, pot: 0, openingRollover: 0, grossEntries: 0, lastBuyerId: null, lastBuyerTeam: null, endsAt: NOW + 300_000 });
   return state;
 }
 
@@ -45,21 +45,21 @@ test('preserves a legitimate one-lamport dip from cumulative integer pricing', (
 
 test('1,000 keys add only 30 seconds when 30 seconds remain below the cap', () => {
   const state = emptyRound();
-  state.round.endsAt = NOW + 86_400_000 - 30_000;
+  state.round.endsAt = NOW + 600_000 - 30_000;
   const result = createPurchasePreview({ state, count: 1000, now: NOW });
   assert.equal(result.ok, true);
   assert.equal(result.timeAddedMs, 30_000);
-  assert.equal(result.resultingRemainingMs, 86_400_000);
-  state.round.endsAt = NOW + 86_400_000;
+  assert.equal(result.resultingRemainingMs, 600_000);
+  state.round.endsAt = NOW + 600_000;
   assert.equal(createPurchasePreview({ state, count: 1, now: NOW }).timeAddedMs, 0);
 });
 
 test('shows the resulting countdown as well as added time', () => {
   const state = emptyRound();
   const result = createPurchasePreview({ state, count: 1000, now: NOW + 10_000 });
-  assert.equal(result.currentRemainingMs, 3_590_000);
-  assert.equal(result.timeAddedMs, 30_000_000);
-  assert.equal(result.resultingRemainingMs, 33_590_000);
+  assert.equal(result.currentRemainingMs, 290_000);
+  assert.equal(result.timeAddedMs, 310_000);
+  assert.equal(result.resultingRemainingMs, 600_000);
 });
 
 test('uses owned and total keys after the purchase, including dilution', () => {

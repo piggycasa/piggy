@@ -1,0 +1,52 @@
+{
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/rpc",
+      "destination": "/api/rpc"
+    },
+    {
+      "source": "/fomo3d",
+      "destination": "/fomo3d/index.html"
+    },
+    {
+      "source": "/fomo3d/",
+      "destination": "/fomo3d/index.html"
+    },
+    {
+      "source": "/verify",
+      "destination": "/verify/index.html"
+    },
+    {
+      "source": "/verify/",
+      "destination": "/verify/index.html"
+    },
+    {
+      "source": "/test-claims",
+      "destination": "/test-claims/index.html"
+    },
+    {
+      "source": "/test-claims/",
+      "destination": "/test-claims/index.html"
+    },
+    {
+      "source": "/how-to-play",
+      "destination": "/how-to-play/index.html"
+    },
+    {
+      "source": "/how-to-play/",
+      "destination": "/how-to-play/index.html"
+    },
+    {
+      "source": "/proofs/:path*",
+      "destination": "https://piggy-play.windyhen258.chatgpt.site/proofs/:path*"
+    },
+    {
+      "source": "/launch-proofs/:path*",
+      "destination": "https://piggy-launch-proofs.windyhen258.chatgpt.site/proofs/:path*"
+    }
+  ]
+}

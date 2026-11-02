@@ -1,5 +1,7 @@
 # PIGGY
 
+**Current status: [deployment and launch preparation](DEPLOYMENT-STATUS.md).** The replacement executable is deployed; the new game and token binding are not yet initialized. Planned timing: five-minute start, 30 seconds per key, ten-minute remaining cap.
+
 Source for the game at [piggy.casa](https://piggy.casa). Feed Piggy with SOL to buy round keys; new feeds fund key rewards, and the last eligible feeder when the clock expires receives the jackpot. Holding $PIGGY has a separate, funded snapshot reward claim. Keys and $PIGGY are different assets.
 
 This is a fresh source publication with new Git history. It contains only the PIGGY program, interface, related tooling and documentation. It does not contain previous repository history, private keys, operator journals, credentials or unrelated projects. Upstream authorship and applicable notices are preserved.

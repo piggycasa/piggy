@@ -4,12 +4,14 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PublicKey, Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync, unpackMint, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { reviewedGameTiming } from '../src/game-timing.mjs';
 import * as sdk from '../src/solana-instructions.mjs';
 import { ROOT, PUBLICNET, CLUSTERS, options, publicRpc, rpc, assertGenesis, verifiedArtifact, writeJson, safeError, UPGRADEABLE_LOADER } from './publicnet-common.mjs';
 import { requireMainnetAuthorities, validatePreparedOpeningJournal } from './publicnet-validation.mjs';
 import { publicationDomain, assertPublicationDomain } from '../src/holder-publication.mjs';
 
-export function gameInitializationInstructions({ programId, gameVersion, piggyMint, gameCreator, communityTreasury, holderPublisher }) {
+export function gameInitializationInstructions({ programId, gameVersion, piggyMint, gameCreator, communityTreasury, holderPublisher, gameTiming }) {
+  const timing = reviewedGameTiming(gameTiming);
   const creator = new PublicKey(gameCreator), community = new PublicKey(communityTreasury), mint = new PublicKey(piggyMint);
   const version = BigInt(gameVersion); if (version < 1n || version >= 1n << 64n) throw new Error('A positive u64 game version is required.');
   const communityAta = getAssociatedTokenAddressSync(sdk.NATIVE_MINT, community), placeholderAta = getAssociatedTokenAddressSync(sdk.NATIVE_MINT, creator);
@@ -19,7 +21,7 @@ export function gameInitializationInstructions({ programId, gameVersion, piggyMi
       { name: 'Create canonical WSOL destination accounts', instructions: [createAssociatedTokenAccountIdempotentInstruction(creator, communityAta, community, sdk.NATIVE_MINT), createAssociatedTokenAccountIdempotentInstruction(creator, placeholderAta, creator, sdk.NATIVE_MINT)] },
       // S0 is prepared while this game PDA is absent. Leave round_id=0 so the
       // publisher can activate that journal before the keeper opens round 1.
-      { name: 'Atomically initialize original-timing game and holder vault; keep first round closed', instructions: [sdk.initializeGameInstruction({ programId, creator, version, communityWallet: communityAta, p3dWallet: placeholderAta, initialSeconds: 3600, incrementSeconds: 30, maxSeconds: 86400 }), sdk.initializeHolderInstruction({ programId, creator, version, eligibilityMint: mint, publisher: holderPublisher })] },
+      { name: 'Atomically initialize reviewed-timing game and holder vault; keep first round closed', instructions: [sdk.initializeGameInstruction({ programId, creator, version, communityWallet: communityAta, p3dWallet: placeholderAta, ...timing }), sdk.initializeHolderInstruction({ programId, creator, version, eligibilityMint: mint, publisher: holderPublisher })] },
     ],
   };
 }
@@ -40,7 +42,7 @@ export async function prepareGameInitialization(argv = process.argv.slice(2)) {
   const plan = gameInitializationInstructions({ ...config, ...expected });
   const url = publicRpc(cluster, opts.rpc || process.env.PIGGY_RPC_URL || config.rpcUrl);
   const output = path.resolve(opts.output || path.join(PUBLICNET, cluster, 'game-initialization-plan.json'));
-  const report = { schemaVersion: 1, cluster, preparedAt: new Date().toISOString(), disabled: true, executionSupported: false, signed: false, broadcast: false, programId: config.programId, gameVersion: String(config.gameVersion), piggyMint: config.piggyMint, expectedAuthorities: expected, timing: { initialSeconds: 3600, secondsPerShare: 30, maxSeconds: 86400 }, paymentMint: sdk.NATIVE_MINT.toBase58(), activation: { requiredBeforeGameCreation: 'Durable finalized S0 with game absence proven at a bank at least as new as S0', initializedRoundId: '0', firstRoundCreated: false, requiredBeforeRound1: 'Publisher init activates the preserved pre-creation S0 journal and exports the public empty proof index', actionAfterPublisherActivation: 'A separate permissionless keeper tick creates round 1', enablePublicUiAfter: 'Confirmed round 1 initialization, release preflight and actual canaries' }, addresses: plan.addresses, checks: [], blockers: [], steps: [] };
+  const report = { schemaVersion: 1, cluster, preparedAt: new Date().toISOString(), disabled: true, executionSupported: false, signed: false, broadcast: false, programId: config.programId, gameVersion: String(config.gameVersion), piggyMint: config.piggyMint, expectedAuthorities: expected, timing: reviewedGameTiming(config.gameTiming), paymentMint: sdk.NATIVE_MINT.toBase58(), activation: { requiredBeforeGameCreation: 'Durable finalized S0 with game absence proven at a bank at least as new as S0', initializedRoundId: '0', firstRoundCreated: false, requiredBeforeRound1: 'Publisher init activates the preserved pre-creation S0 journal and exports the public empty proof index', actionAfterPublisherActivation: 'A separate permissionless keeper tick creates round 1', enablePublicUiAfter: 'Confirmed round 1 initialization, release preflight and actual canaries' }, addresses: plan.addresses, checks: [], blockers: [], steps: [] };
   async function check(name, fn) { try { const details = await fn(); report.checks.push({ name, ok: true, details }); return details; } catch (error) { const message = safeError(error, url); report.checks.push({ name, ok: false, error: message }); report.blockers.push(name + ': ' + message); return null; } }
   let artifact;
   await check('reviewed public artifact', async () => { artifact = await verifiedArtifact(path.resolve(opts.manifest || path.join(PUBLICNET, 'build/manifest.json'))); return { binarySha256: artifact.manifest.binarySha256, sourceSha256: artifact.manifest.sourceSha256 }; });

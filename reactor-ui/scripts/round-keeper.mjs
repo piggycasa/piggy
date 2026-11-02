@@ -76,7 +76,7 @@ export async function readKeeperState(ctx) {
   let game = sdk.decodeGame(gameInfo.data), slot = result.context.slot, clockAccount = clockInfo;
   const holder = sdk.decodeHolderConfig(holderInfo.data);
   if (game.version !== BigInt(ctx.config.gameVersion) || game.mint !== sdk.NATIVE_MINT.toBase58() || holder.game !== ctx.game.toBase58() || holder.eligibility_mint !== ctx.config.piggyMint || holder.payment_mint !== sdk.NATIVE_MINT.toBase58() || holder.vault !== sdk.holderVaultAddress(ctx.config.programId, ctx.game).toBase58() || game.p3d_wallet !== holder.vault) throw new Error('Keeper game, holder mint or WSOL configuration mismatch.');
-  if (ctx.config.cluster === 'mainnet-beta') validateMainnetGameConfiguration(game, holder, ctx.config.expectedAuthorities);
+  if (ctx.config.cluster === 'mainnet-beta') validateMainnetGameConfiguration(game, holder, ctx.config.expectedAuthorities, ctx.config.gameTiming);
   let round = null;
   if (game.round_id > 0n) {
     // Read the selected round and its Clock in one bank. A later round read

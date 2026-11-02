@@ -22,7 +22,7 @@ The publisher is trusted to report historical balances and allocation fairly. Th
 
 1. Verify the reviewed program, Pump mint and authorities. There must be at least one eligible token holder. No initial token purchase is encoded in the prepared Pump transaction.
 2. Run `holder:publisher prepare-opening` before creating the game. It saves S0 and proves the game was absent at a finalized bank at or after S0.
-3. Initialize the game and holder vault together, with original timing 3,600 / 30 / 86,400 seconds. Leave `round_id=0`.
+3. Initialize the game and holder vault together, with the configured timing (PIGGY relaunch: 300 / 30 / 600 seconds; legacy: 3,600 / 30 / 86,400 seconds). Leave `round_id=0`.
 4. Run `holder:publisher init`. It validates the deployment, activates the saved S0 without replacing it, and exports an empty proof index.
 5. Start the separate keeper to open round 1. Confirm the actual round and complete release preflight before enabling the public UI.
 

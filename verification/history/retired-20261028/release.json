@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "cluster": "mainnet-beta",
+  "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+  "programId": "3c5jUPmmXR3zV47uGW4YjSeSQhHKk2H6yj5U5JcfvbfK",
+  "programData": "5Zvkq97p8E8riyNNgjxBL2f3arVbScp7AdrrR1pAZ5F3",
+  "binaryBytes": 267648,
+  "binarySha256": "7862ecd936cef7faaade05a834aca76065a37f8ad107fef3767f449bd653eb65",
+  "binaryUrl": "/verification/piggy-mainnet.so",
+  "sourceRepository": "https://github.com/piggycasa/piggy",
+  "sourceCommit": "f7ba440e8667dd920d89bf6a8fba0158c3887e68",
+  "recordedSourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
+  "observedUpgradeAuthority": "AaD3ws5nVeUntDpmciiqx5NxYQKpN6idm59j6SJ7SZdX",
+  "observedAt": "2026-10-28T01:09:33Z",
+  "observedSlot": 462285024,
+  "deploymentSlot": 462227427,
+  "toolchain": {
+    "cargoBuildSbf": "4.0.0",
+    "platformTools": "1.53",
+    "rustc": "1.89.0",
+    "flags": [
+      "--no-default-features",
+      "--locked"
+    ]
+  },
+  "verificationKind": "published-release-bytes",
+  "independentSourceBuildVerified": false,
+  "independentSecurityAudit": false,
+  "lotteryEnabled": false,
+  "sourceAccess": "public",
+  "sourcePath": "program",
+  "sourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
+  "gameVersion": "1793155991891",
+  "gameAccount": "GXX38mLVdj2i2H3s5z5yvpkaZHpRQt1ZorrgsfeFKT5g",
+  "piggyMint": "BwnmfvgEhAFboL8YW6CFoBUSH4QHriA9qBcAVPc71jRA",
+  "legacyGame": {
+    "gameVersion": "1793081200001",
+    "gameAccount": "FZ6QVPqc8tmpEfzNzxHq7reKshtphoU13vjfNDqdf3Xm",
+    "claimUrl": "https://piggy.casa/test-claims/",
+    "proofIndexUrl": "https://piggy.casa/proofs/index.json",
+    "holderConfig": "DM7CNc7Akrjf8eCV7KFcQxbnNCGo9ZPdryXgBzbN2c6v",
+    "holderVault": "31xpNiqj2vcRAMQyQMNyvRDZyw2fTSZhgYAAs2ZptsF3"
+  },
+  "holderConfig": "JCiKUFDM62yd1VXUzgHTLa6m2Aa82i4fVZwtVXchHxkN",
+  "holderVault": "D3azZR1kykY8rdabh9iAVmXcuo7rA2LYuDK9moY1mUUB",
+  "initialRound": {
+    "roundId": "1",
+    "roundAccount": "6TPGnFDLTA5CV1wxtyzySewGCEF8Q5wKr1755fWYwBsb",
+    "potAccount": "2p4TZ1Q369HWFih53xAM8TyUztsbdpwddoZHNbDriJNG"
+  }
+}

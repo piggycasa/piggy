@@ -288,14 +288,14 @@ test('an unfunded first round uses the source single-lamport boundary without fa
   conserved(state);
 });
 
-test('new rounds use the original hour and each key adds thirty seconds', () => {
+test('new rounds start at five minutes and keys respect the ten-minute cap', () => {
   const state = nextRound();
   const now = state.lastActionAt;
-  assert.equal(timeRemaining(state, now), 3_600_000);
+  assert.equal(timeRemaining(state, now), 300_000);
   const purchase = buyKeys(state, 'you', 10, now, 'whale');
   assert.equal(purchase.ok, true);
   assert.equal(purchase.actualExtensionMs, 300_000);
-  assert.equal(timeRemaining(state, now), 3_900_000);
+  assert.equal(timeRemaining(state, now), 600_000);
   conserved(state);
 });
 

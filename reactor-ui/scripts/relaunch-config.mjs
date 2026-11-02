@@ -1,5 +1,6 @@
 /** Pure, non-signing configuration builder for the new PIGGY deployment. */
 import path from 'node:path';
+import {PIGGY_TIMING} from '../src/game-timing.mjs';
 import {PublicKey} from '@solana/web3.js';
 import * as sdk from '../src/solana-instructions.mjs';
 import {CLUSTER_GENESIS} from '../src/solana-config.mjs';
@@ -9,7 +10,7 @@ export function relaunchConfigs({mint,rpcUrl,root,enabled=false,origin='https://
  const key=new PublicKey(mint);if(!PublicKey.isOnCurve(key)||key.equals(PublicKey.default)||mint===RETIRED_MINT||mint===RELAUNCH.programId)throw Error('Supply the new token mint; retired mint and placeholders are forbidden.');
  const rpc=new URL(rpcUrl);if(rpc.protocol!=='https:'||rpc.username||rpc.password||rpc.hash)throw Error('Explicit HTTPS RPC required.');
  if(!path.isAbsolute(root))throw Error('Absolute private operator root required.');
- const base={schemaVersion:1,cluster:'mainnet-beta',genesisHash:CLUSTER_GENESIS['mainnet-beta'],programId:RELAUNCH.programId,gameVersion:RELAUNCH.gameVersion,piggyMint:key.toBase58(),expectedAuthorities:RELAUNCH.authorities,priorityFeeMicroLamports:0,mainnetEnabled:enabled,purchaseGuardVersion:1,streamflowLocks:true};
+ const base={schemaVersion:1,gameTiming:PIGGY_TIMING,cluster:'mainnet-beta',genesisHash:CLUSTER_GENESIS['mainnet-beta'],programId:RELAUNCH.programId,gameVersion:RELAUNCH.gameVersion,piggyMint:key.toBase58(),expectedAuthorities:RELAUNCH.authorities,priorityFeeMicroLamports:0,mainnetEnabled:enabled,purchaseGuardVersion:1,streamflowLocks:true};
  const publicConfig={...base,rpcUrl:origin+'/rpc',proofIndexUrl:origin+'/launch-proofs/index.json'};
  const common={...base,rpcUrl:rpc.href,programBinarySha256:RELAUNCH.binarySha256,programBinaryBytes:RELAUNCH.binaryBytes};
  return{publicConfig,publisher:{...common,publisherKeypair:path.join(root,'keys/holder-publisher.json'),workspace:path.join(root,'publisher-state'),proofOutput:path.join(root,'public/proofs'),epochSeconds:3600,minPublishLamports:'10000000',excludedWallets:[]},keeper:{...common,keeperPublicKey:RELAUNCH.keeper,keeperKeypair:path.join(root,'keys/keeper.json'),workspace:path.join(root,'keeper-state'),publisherStateFile:path.join(root,'publisher-state/state.json'),pollSeconds:2,celebrationSeconds:8,maxFeeLamportsPerTransaction:100000,maxDailyFeeLamports:500000,maxDailyRentLamports:120000000,minBalanceLamports:1000000,settleOnly:false}};

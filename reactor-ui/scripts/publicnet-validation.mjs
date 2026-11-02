@@ -1,4 +1,5 @@
 /** Pure release checks shared by operator tooling and their regression tests. */
+import { reviewedGameTiming } from '../src/game-timing.mjs';
 import { PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from '@solana/spl-token';
 import { assertPublicationDomain, SUPPORTED_ELIGIBILITY_POLICIES } from '../src/holder-publication.mjs';
@@ -32,13 +33,14 @@ export function requireMainnetAuthorities(config) {
   return result;
 }
 
-export function validateMainnetGameConfiguration(game, holder, expected) {
-  for (const [field, value] of [['round_init_time', 3600n], ['round_inc_time_per_key', 30n], ['round_max_time', 86400n]]) if (BigInt(game[field]) !== value) throw new Error(`Mainnet ${field} must be the original ${value} seconds.`);
+export function validateMainnetGameConfiguration(game, holder, expected, gameTiming) {
+  const timing = reviewedGameTiming(gameTiming);
+  for (const [field, value] of [['round_init_time', BigInt(timing.initialSeconds)], ['round_inc_time_per_key', BigInt(timing.incrementSeconds)], ['round_max_time', BigInt(timing.maxSeconds)]]) if (BigInt(game[field]) !== value) throw new Error(`Mainnet ${field} must be the original or explicitly reviewed ${value} seconds.`);
   if (game.game_creator !== expected.gameCreator) throw new Error('Mainnet game creator differs from the reviewed role.');
   if (holder.publisher !== expected.holderPublisher) throw new Error('Mainnet holder publisher differs from the reviewed role.');
   const communityAccount = getAssociatedTokenAddressSync(NATIVE_MINT, new PublicKey(expected.communityTreasury));
   if (game.community_wallet !== communityAccount.toBase58()) throw new Error('Mainnet community payment account is not the reviewed treasury WSOL ATA.');
-  return { expectedAuthorities: expected, communityTokenAccount: communityAccount.toBase58(), initialSeconds: 3600, secondsPerShare: 30, maxSeconds: 86400 };
+  return { expectedAuthorities: expected, communityTokenAccount: communityAccount.toBase58(), initialSeconds: timing.initialSeconds, secondsPerShare: timing.incrementSeconds, maxSeconds: timing.maxSeconds };
 }
 
 export function requireActivatedGame(game) {

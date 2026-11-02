@@ -106,7 +106,7 @@ Mainnet release configuration also requires the following explicit reviewed role
 }
 ```
 
-All four roles are mandatory and distinct on Mainnet. Preflight enforces the actual program upgrade authority, game creator, holder publisher, treasury WSOL ATA and its token-account owner. Mainnet timing must be exactly the original **3,600 seconds initially, 30 seconds per whole share and 86,400-second cap**. A successful short-timer test game cannot pass this production gate.
+All four roles are mandatory and distinct on Mainnet. Preflight enforces the actual program upgrade authority, game creator, holder publisher, treasury WSOL ATA and its token-account owner. The new PIGGY relaunch explicitly configures **300 seconds initially, 30 seconds per whole key and a 600-second remaining-time cap**. Legacy instances retain the original profile. Preflight must match the specific configuration; arbitrary short test timers cannot pass.
 
 Proof index metadata is `{schemaVersion: 1, cluster, genesisHash, programId, gameVersion, piggyMint, epochs: [{epoch, root, snapshotSlot, totalAmount}]}`. Per-wallet proof files live alongside the index under `wallets/<base58-wallet>.json`. The endpoint is read-only. An empty index is valid before any published holder epoch; preserve the publisher's opening eligibility snapshot before fee accrual. The publisher and its signing key run separately from static public hosting.
 
