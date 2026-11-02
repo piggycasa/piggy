@@ -25,3 +25,7 @@ The token must exist before its supply and ownership snapshot can be checked. No
 ## Approved timing — 2 November 2026
 
 The relaunch uses `gameTiming: { initialSeconds: 300, incrementSeconds: 30, maxSeconds: 600 }`. The initializer, publisher, keeper and preflight check this profile explicitly. The deployed executable, original curve and payout tables are unchanged. This is a game-account initialization setting; it is not a new binary deployment. The new mint and pre-game ownership snapshot are still required before initialization.
+
+## Keeper funding limit — 2 November 2026
+
+The approved combined daily limit is 1.3 SOL: 1.29 SOL of new-account rent and 0.01 SOL of network fees. This is a spending ceiling, not a balance or funding transfer. Fund keeper `AKgknx81B2YCYu5gJm9z23aBdFjdeRBkJTWs2DLHLEYP`; the mint address is not the operator funding address.
