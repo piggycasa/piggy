@@ -34,6 +34,6 @@ The website's [release check](https://piggy.casa/verify/) is convenient, but thi
 
 The replacement Mainnet program is deployed, but the new game is not initialized and the new token mint has not been supplied. The planned game timing is 300 seconds initially, 30 seconds added per key and a 600-second remaining-time cap. These are initialization parameters supported by the unchanged executable, not a new program deployment.
 
-The countdown at piggy.casa targets 21:00 Europe/London on 2 November 2026. Reaching zero does not initialize the game or enable deposits. It shows that the scheduled time has arrived and awaits launch confirmation.
+The countdown at piggy.casa targets 21:20 Europe/London on 2 November 2026. Reaching zero does not initialize the game or enable deposits. It shows that the scheduled time has arrived and awaits launch confirmation.
 
 Previous verification records are archived under `verification/history/retired-20261028/`. They describe the retired program; its claims are unavailable. Historical transaction tests do not verify the replacement game's claims.
