@@ -119,7 +119,6 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
   async function connect(name,{onlyIfTrusted=false}={}){
     if(busy)throw new Error('Finish the pending transaction before changing wallets.');
     if(connecting)throw new Error('A wallet connection is already in progress.');
-    if(typeof name==='string'&&name.toLowerCase().includes('phantom'))throw new Error('Phantom is temporarily unavailable. Waiting for whitelist.');
     connector.refresh();
     const choice=connector.list().find(item=>!name||item.id===name||item.name===name);if(!choice)throw new Error('No compatible Solana wallet was detected. Open PIGGY in your wallet browser or install a Solana wallet extension.');
     connecting=true;
@@ -158,7 +157,8 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     if(wallet!==activeActionWallet)throw new Error('Wallet changed during this action. Review the new wallet before trying again.');
     if(!who||!signingProvider)throw new Error('Connect your Solana wallet first.');
     const block=await conn.getLatestBlockhashAndContext(confirmedRead()),tx=new Transaction({feePayer:sdk.pk(who),blockhash:block.value.blockhash,lastValidBlockHeight:block.value.lastValidBlockHeight}).add(...budget(),...instructions);
-    for(const signer of signers)tx.partialSign(signer);
+    // Request the wallet signature first; secondary signatures are added only
+    // after validating the unchanged wallet-returned transaction.
     if(tx.serialize({requireAllSignatures:false,verifySignatures:false}).length>1232)throw new Error('This claim proof is too large for a legacy Solana transaction. A reviewed lookup-table client is required before it can be claimed.');
     const message=tx.serializeMessage(),fee=(await conn.getFeeForMessage(tx.compileMessage(),COMMITMENT)).value;if(fee===null)throw new Error('Unable to estimate the Solana transaction fee.');
     const available=await conn.getBalance(sdk.pk(who),confirmedRead());if(BigInt(available)<debit+BigInt(fee+rent+extraRent))throw new Error('Not enough SOL for this action, network fee and temporary account rent. Temporary wrapped-SOL rent is returned atomically.');
@@ -170,8 +170,9 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     if(typeof signed?.serialize!=='function')throw new Error('Wallet returned an invalid transaction. No transaction was sent.');
     // Decode the actual wire bytes using our SDK. Do not trust methods on a
     // provider-supplied object to describe or verify a different byte payload.
-    const canonical=Transaction.from(signed.serialize());
+    const canonical=Transaction.from(signed.serialize({requireAllSignatures:false,verifySignatures:false}));
     if(!Buffer.from(canonical.serializeMessage()).equals(message))throw new Error('Wallet changed the prepared transaction. No transaction was sent.');
+    for(const signer of signers)canonical.partialSign(signer);
     const bytes=canonical.serialize();if(bytes.length>1232)throw new Error('Transaction exceeds the Solana packet limit.');
     if(await conn.getBlockHeight(COMMITMENT)>block.value.lastValidBlockHeight)throw new Error('Wallet approval took too long. Refresh and approve a new quote; no transaction was sent.');
     await verifyNetwork();if(revalidate)await revalidate();

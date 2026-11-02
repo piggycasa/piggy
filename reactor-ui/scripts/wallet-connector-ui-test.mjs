@@ -101,10 +101,11 @@ try{
   browser=await chromium.launch({channel:'chrome',headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   if(!emptyOnly){
   {
-    const {page,context}=await fixturePage(390,844,{initial:false,remembered:'Phantom'});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Phantom',0));
-    const blocked=page.locator('[data-wallet-disabled="phantom"]');await blocked.waitFor();check('Phantom row is disabled pending whitelist',await blocked.isDisabled()&&(await blocked.innerText()).includes('Waiting for whitelist'));
-    check('remembered Phantom never receives a connect request',await page.evaluate(()=>window.__qaWallets.counts.connect===0));
-    check('no Phantom deep link bypass is exposed',await page.locator('a[href*="phantom"]').count()===0);await screenshot(page,'phantom-disabled');await context.close();
+    const {page,context}=await fixturePage(390,844,{initial:false});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Phantom',0));
+    await row(page,'Phantom').waitFor();check('Phantom is available in the wallet picker',await row(page,'Phantom').isEnabled());
+    check('no obsolete whitelist notice remains',await page.locator('[data-wallet-disabled="phantom"]').count()===0&&!(await page.locator('#wallet-dialog').innerText()).includes('Waiting for whitelist'));
+    await screenshot(page,'phantom-restored');await connect(page,'Phantom',0);check('Phantom selection connects the expected account',await page.locator('#chain-wallet').textContent()===wallets[0].toBase58());
+    check('Phantom connect never signs a transaction',await page.evaluate(()=>window.__qaWallets.counts.sign===0));await context.close();
   }
   {
     const{page,context}=await fixturePage(1440,900);await openChooser(page);

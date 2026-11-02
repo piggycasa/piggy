@@ -46,7 +46,7 @@ test('proof URL resolves both a published index.json and an explicit directory b
   assert.equal(walletProofUrl('https://proofs.example.test/proofs/',wallet),expected);
   assert.equal(walletProofUrl('https://proofs.example.test/proofs',wallet),expected);
 });
-function fixture({simulationError=null,sendError=false,mutate=false,signError=false,confirmError=false,wrongGenesis=false,owner=pair(),storage,manifest,onTransaction,standard=false}={}){
+function fixture({simulationError=null,sendError=false,mutate=false,signError=false,confirmError=false,wrongGenesis=false,phantom=false,owner=pair(),storage,manifest,onTransaction,standard=false}={}){
   const game=sdk.gameAddress(program,123n),holder=sdk.holderConfigAddress(program,game),vault=sdk.holderVaultAddress(program,game),round=sdk.roundAddress(program,1,123n),now=BigInt(Math.floor(Date.now()/1000));
   const counters={sign:0,send:0,simulate:0},listeners=new Map(),state={slot:100,status:null,fail:false};
   const account=data=>({owner:program,data,executable:false,lamports:1,rentEpoch:0});
@@ -73,11 +73,11 @@ function fixture({simulationError=null,sendError=false,mutate=false,signError=fa
     'standard:connect':{version:'1.0.0',connect:async()=>({accounts:standardAccounts})},
     'standard:disconnect':{version:'1.0.0',disconnect:async()=>{}},
     'standard:events':{version:'1.0.0',on:(event,callback)=>{standardEvents.set(event,callback);return()=>standardEvents.delete(event);}},
-    'solana:signTransaction':{version:'1.0.0',supportedTransactionVersions:['legacy'],signTransaction:async input=>[{signedTransaction:(await wallet.signTransaction(Transaction.from(input.transaction))).serialize()}]}
+    'solana:signTransaction':{version:'1.0.0',supportedTransactionVersions:['legacy'],signTransaction:async input=>[{signedTransaction:(await wallet.signTransaction(Transaction.from(input.transaction))).serialize({requireAllSignatures:false,verifySignatures:false})}]}
   }};
   let registered=standard?[standardWallet]:[];
   const registry={get:()=>registered,on:(event,callback)=>{registryEvents.set(event,callback);return()=>registryEvents.delete(event);}};
-  const client=createPublicGameClient(config,{connection,storage,onTransaction,walletScope:standard?{}:{solflare:wallet},walletRegistry:registry,fetch:async()=>manifest?{status:200,ok:true,json:async()=>manifest}:{status:404,ok:false}});
+  const client=createPublicGameClient(config,{connection,storage,onTransaction,walletScope:standard?{}:phantom?{phantom:{solana:wallet}}:{solflare:wallet},walletRegistry:registry,fetch:async()=>manifest?{status:200,ok:true,json:async()=>manifest}:{status:404,ok:false}});
   return{client,connection,counters,listeners,state,accounts,owner,round,game,wallet,standardAccount,
     changeStandardAccounts:next=>{standardAccounts=next;standardEvents.get('change')?.({accounts:next});},
     unregisterStandard:()=>{registered=[];registryEvents.get('unregister')?.(standardWallet);},
@@ -164,6 +164,11 @@ test('provider methods cannot disguise a different signed wire transaction',asyn
 });
 test('previously authorized wallet reconnect requests trusted-only approval and never a transaction',async()=>{const f=fixture();let options;f.wallet.connect=async value=>{options=value;return{publicKey:f.owner.publicKey};};await f.client.connect('Solflare',{onlyIfTrusted:true});assert.deepEqual(options,{onlyIfTrusted:true});assert.equal(f.client.connected,true);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);});
 
-test('Phantom requests are blocked before provider connection or transaction activity',async()=>{
- const f=fixture();await assert.rejects(f.client.connect('Phantom'),/Waiting for whitelist/);assert.equal(f.client.connected,false);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);f.client.dispose();
+test('Phantom connects without requesting a transaction signature',async()=>{
+ const f=fixture({phantom:true});await f.client.connect('Phantom');assert.equal(f.client.connected,true);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);f.client.dispose();
+});
+
+
+test('wallet signs before temporary-account signers and final submission has all signatures',async()=>{
+ const f=fixture();await f.client.connect();const original=f.wallet.signTransaction;let checked=false;f.wallet.signTransaction=async tx=>{assert.equal(tx.signatures.some(s=>s.signature!==null),false);checked=true;return original(tx);};const result=await f.client.feed(feed);assert.equal(result.ok,true);assert.equal(checked,true);assert.equal(f.counters.send,1);f.client.dispose();
 });

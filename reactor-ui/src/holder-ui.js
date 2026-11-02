@@ -1,4 +1,3 @@
-import { PHANTOM_NOTICE } from './wallet-availability.mjs';
 import './solana-browser-polyfill.mjs';
 import './konterball-fonts.css';
 import './konterball-ui.css';
@@ -884,11 +883,9 @@ async function initializePublicWallet() {
         const marker = element('span', 'wallet-provider-marker'); marker.setAttribute('aria-hidden', 'true');
         row.append(icon, copy, marker); row.addEventListener('click', () => { select.value = choice.id; walletError = ''; connectPublicWallet(choice.id); }); return row;
       }));
-      const phantom=element('button','wallet-provider');phantom.type='button';phantom.disabled=true;phantom.dataset.walletDisabled='phantom';phantom.setAttribute('aria-label',`Phantom: ${PHANTOM_NOTICE}`);const phantomCopy=element('span','wallet-provider-copy');phantomCopy.append(element('strong','','Phantom'),element('span','wallet-provider-detail',PHANTOM_NOTICE));phantom.append(element('span','wallet-provider-icon','P'),phantomCopy);list.append(phantom);
       if (focusedId) list.querySelector(`[data-wallet-id="${CSS.escape(focusedId)}"]`)?.focus({ preventScroll: true });
     }
     for (const row of list.children) {
-      if(row.dataset.walletDisabled){row.disabled=true;continue;}
       const isCurrent = !!chainClient?.connected && row.dataset.walletId === chainClient.walletId;
       const isPending = connecting && row.dataset.walletId === pendingWalletId;
       row.disabled = connecting || disconnecting || chainPending || isCurrent;
