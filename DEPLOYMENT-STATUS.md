@@ -5,7 +5,7 @@
 - Same 267,648-byte executable; no program redeployment or upgrade for the clock change.
 - Approved initialization: **300-second start, 30 seconds per key, 600-second remaining cap**. Original curve and payout tables are unchanged.
 - New game not initialized; new token mint not supplied. Operator activation and fresh Mainnet transaction tests are still pending.
-- The website countdown is scheduled for **2 November 2026 at 21:20 Europe/London**. Reaching zero does not automatically open the game.
+- The website countdown is scheduled for **2 November 2026 at 21:30 Europe/London**. Reaching zero does not automatically open the game.
 - Public source includes `launch-site/` for the current holding page/countdown and `reactor-ui/` for the game and operators. Branding/font assets remain in the interface's public assets.
 - Previous PIGGY program is permanently retired. Old claims are unavailable; archived test evidence is explicitly historical.
 
