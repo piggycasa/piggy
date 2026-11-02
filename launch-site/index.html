@@ -21,6 +21,8 @@
     @media(max-height:650px) and (max-width:700px){.shell{gap:7px}.intro h1{font-size:29px}.intro>p{font-size:12px}.earn a{padding:5px 0}.earn strong{font-size:14px}.earn span{font-size:11px}.origin{padding:10px}.origin .bridge{font-size:14px}.origin .context{font-size:12px}.origin h2{font-size:32px}.origin [data-historical-value]{font-size:13px}}
     @media(orientation:landscape) and (max-height:600px){.header{min-height:40px}.launch-gather{flex-direction:row;align-items:center;gap:12px}.launch-gather>strong{font-size:28px}.launch-gather>span{font-size:10px}.intro h1{font-size:30px}}
     @media(orientation:landscape) and (max-height:350px){.intro h1{font-size:25px}.intro>p{font-size:10px}.launch-gather>span{font-size:9px}.launch-gather>strong{font-size:24px}}
+    .mint-line{display:flex;align-items:center;gap:8px;font-size:11px;color:#e1dbff;margin-top:8px}.mint-line button{font:inherit;color:#f7ff4a;background:transparent;border:0;border-bottom:1px dotted currentColor;padding:2px;cursor:pointer}.mint-line button:focus-visible{outline:2px solid #f7ff4a;outline-offset:3px}.mint-line small{font-size:10px}
+    @media(max-width:700px){.mint-line{font-size:10px;margin-top:4px;gap:5px}.mint-line small{font-size:9px}}
   </style>
 </head>
 <body>
@@ -45,7 +47,11 @@
         <p class="note">Fomo3D’s historical jackpot. Not PIGGY’s pot or a forecast.</p>
       </a>
     </main>
-    <footer class="footer"><p>Gather here for the game launch. Entries open after launch confirmation.</p><nav aria-label="More information"><a href="/how-to-play/">How it works</a><a href="/verify/">Verify</a><a href="/asset-credits.html">Credits</a></nav></footer>
+    <footer class="footer"><div><p>Gather here for the game launch. Entries open after launch confirmation.</p><div class="mint-line"><span>Planned $PIGGY mint</span><button type="button" id="copy-mint" title="ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig" aria-label="Copy full planned PIGGY mint address">ohDvYw…Aepig</button><small id="mint-status" aria-live="polite">Token creation pending</small></div></div><nav aria-label="More information"><a href="/how-to-play/">How it works</a><a href="/verify/">Verify</a><a href="/asset-credits.html">Credits</a></nav></footer>
   </div>
+<script type="module">
+    const mint='ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig';
+    document.querySelector('#copy-mint').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(mint);document.querySelector('#mint-status').textContent='Address copied';}catch{document.querySelector('#mint-status').textContent=mint;}});
+  </script>
 </body>
 </html>
