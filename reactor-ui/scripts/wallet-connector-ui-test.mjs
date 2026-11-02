@@ -64,7 +64,7 @@ async function injectStandards(page,{initial=true}={}) {
       registry.set(name,{wallet,change:which=>{connected=which===null?[]:[account(which)];for(const fn of listeners)fn({accounts:connected});},remove:()=>{for(const remove of unregisters)remove();window.removeEventListener('wallet-standard:app-ready',ready);registry.delete(name);}});
     }
     window.__qaWallets={register,change:(name,index)=>registry.get(name).change(index),remove:name=>registry.get(name).remove(),counts};
-    if(initial){register('Phantom',0);register('Solflare',1);}
+    if(initial){register('Test Wallet',0);register('Solflare',1);}
   },{addresses:wallets.map(key=>({address:key.toBase58(),bytes:[...key.toBytes()]})),initial});
 }
 
@@ -101,8 +101,14 @@ try{
   browser=await chromium.launch({channel:'chrome',headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   if(!emptyOnly){
   {
+    const {page,context}=await fixturePage(390,844,{initial:false,remembered:'Phantom'});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Phantom',0));
+    const blocked=page.locator('[data-wallet-disabled="phantom"]');await blocked.waitFor();check('Phantom row is disabled pending whitelist',await blocked.isDisabled()&&(await blocked.innerText()).includes('Waiting for whitelist'));
+    check('remembered Phantom never receives a connect request',await page.evaluate(()=>window.__qaWallets.counts.connect===0));
+    check('no Phantom deep link bypass is exposed',await page.locator('a[href*="phantom"]').count()===0);await screenshot(page,'phantom-disabled');await context.close();
+  }
+  {
     const{page,context}=await fixturePage(1440,900);await openChooser(page);
-    check('Standard-only Phantom and Solflare are discovered',await row(page,'Phantom').count()===1&&await row(page,'Solflare').count()===1);
+    check('Standard-only Test Wallet and Solflare are discovered',await row(page,'Test Wallet').count()===1&&await row(page,'Solflare').count()===1);
     check('no injected legacy provider exists',await page.evaluate(()=>!window.phantom&&!window.solflare&&!window.solana));
     check('opening chooser does not connect silently',await page.evaluate(()=>window.__qaWallets.counts.connect===0));
     await connect(page,'Solflare',1);check('explicit wallet selection connects the chosen account',await page.locator('#chain-wallet').textContent()===wallets[1].toBase58());
@@ -110,29 +116,29 @@ try{
     await connect(page,'Backpack',2);check('switching providers updates the account',await page.locator('#chain-wallet').textContent()===wallets[2].toBase58());
     await page.evaluate(()=>window.__qaWallets.change('Backpack',3));await page.waitForFunction(wallet=>document.querySelector('#chain-wallet')?.textContent===wallet,wallets[3].toBase58());check('standard account-change event updates identity',true);
     await openChooser(page);await page.locator('#public-wallet-disconnect').click();await page.waitForFunction(old=>document.querySelector('#buy-label')?.textContent==='Connect wallet'&&document.querySelector('#chain-wallet')?.textContent!==old,wallets[3].toBase58());check('disconnect clears current wallet',true);
-    await page.evaluate(()=>window.__qaReject='Phantom');await row(page,'Phantom').click();await page.waitForFunction(()=>document.querySelector('#public-wallet-status')?.textContent.includes('Connection cancelled'));check('declined connection stays recoverable',await page.locator('#public-wallet-connect').isEnabled());
+    await page.evaluate(()=>window.__qaReject='Test Wallet');await row(page,'Test Wallet').click();await page.waitForFunction(()=>document.querySelector('#public-wallet-status')?.textContent.includes('Connection cancelled'));check('declined connection stays recoverable',await page.locator('#public-wallet-connect').isEnabled());
     await page.locator('#public-wallet-connect').click();await page.waitForFunction(wallet=>document.querySelector('#chain-wallet')?.textContent===wallet,wallets[0].toBase58());check('explicit retry after decline connects the selected wallet',true);await dismissToast(page);await openChooser(page);
     await page.evaluate(()=>window.__qaWallets.register('Wrong account chain',0,{accountChain:'solana:devnet'}));await row(page,'Wrong account chain').waitFor();await row(page,'Wrong account chain').click();await page.waitForFunction(()=>document.querySelector('#public-wallet-status')?.textContent.includes('authorized account'));await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent==='Connect wallet');check('unsupported account chain cannot connect',true);await page.evaluate(()=>window.__qaWallets.remove('Wrong account chain'));
-    await connect(page,'Phantom',0);await page.evaluate(()=>window.__qaWallets.remove('Phantom'));await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent==='Connect wallet');check('unregistered selected wallet invalidates identity',true);
+    await connect(page,'Test Wallet',0);await page.evaluate(()=>window.__qaWallets.remove('Test Wallet'));await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent==='Connect wallet');check('unregistered selected wallet invalidates identity',true);
     check('wallet flows never request transaction signing',await page.evaluate(()=>window.__qaWallets.counts.sign===0));await screenshot(page,'desktop-after-flow');await context.close();
   }
   {
-    const{page,context}=await fixturePage(390,844,{initial:false});await openChooser(page);check('missing-wallet state is explicit',await page.locator('#public-wallet-controls').textContent().then(text=>/wallet|install|open/i.test(text)));await page.evaluate(()=>window.__qaWallets.register('Phantom',0));await row(page,'Phantom').waitFor();check('late registration never connects an unremembered wallet automatically',await page.evaluate(()=>window.__qaWallets.counts.connect===0));await connect(page,'Phantom',0);check('late registration recovers an initially empty registry',await page.locator('#chain-wallet').textContent()===wallets[0].toBase58());await context.close();
+    const{page,context}=await fixturePage(390,844,{initial:false});await openChooser(page);check('missing-wallet state is explicit',await page.locator('#public-wallet-controls').textContent().then(text=>/wallet|install|open/i.test(text)));await page.evaluate(()=>window.__qaWallets.register('Test Wallet',0));await row(page,'Test Wallet').waitFor();check('late registration never connects an unremembered wallet automatically',await page.evaluate(()=>window.__qaWallets.counts.connect===0));await connect(page,'Test Wallet',0);check('late registration recovers an initially empty registry',await page.locator('#chain-wallet').textContent()===wallets[0].toBase58());await context.close();
   }
   {
-    const{page,context}=await fixturePage(390,844,{initial:false,remembered:'Phantom'});
-    await page.evaluate(()=>window.__qaWallets.register('Phantom',0));await page.waitForFunction(wallet=>document.querySelector('#chain-wallet')?.textContent===wallet,wallets[0].toBase58());
+    const{page,context}=await fixturePage(390,844,{initial:false,remembered:'Test Wallet'});
+    await page.evaluate(()=>window.__qaWallets.register('Test Wallet',0));await page.waitForFunction(wallet=>document.querySelector('#chain-wallet')?.textContent===wallet,wallets[0].toBase58());
     check('late remembered wallet reconnects with trusted-only standard request',await page.evaluate(()=>window.__qaWallets.counts.connect===1&&window.__qaWallets.counts.options[0]?.silent===true));
     await page.evaluate(()=>window.__qaWallets.register('Solflare',1));await openChooser(page);await row(page,'Solflare').waitFor();check('a later registration does not repeat automatic reconnect',await page.evaluate(()=>window.__qaWallets.counts.connect===1));await context.close();
   }
   {
-    const{page,context}=await fixturePage(390,844,{initial:false,remembered:'Phantom'});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Solflare',1));await row(page,'Solflare').waitFor();await connect(page,'Solflare',1);await page.evaluate(()=>window.__qaWallets.register('Phantom',0));
+    const{page,context}=await fixturePage(390,844,{initial:false,remembered:'Test Wallet'});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Solflare',1));await row(page,'Solflare').waitFor();await connect(page,'Solflare',1);await page.evaluate(()=>window.__qaWallets.register('Test Wallet',0));
     check('explicit wallet choice takes precedence over a late remembered provider',await page.locator('#chain-wallet').textContent()===wallets[1].toBase58()&&await page.evaluate(()=>window.__qaWallets.counts.connect===1));await context.close();
   }
   {
-    const{page,context}=await fixturePage(390,844,{pending:true});await openChooser(page);await connect(page,'Phantom',0);await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent.includes('Confirmation pending'));
+    const{page,context}=await fixturePage(390,844,{pending:true});await openChooser(page);await connect(page,'Test Wallet',0);await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent.includes('Confirmation pending'));
     check('restored unresolved signature disables another debit for its wallet',await page.locator('#buy-button').isDisabled());await openChooser(page);await connect(page,'Solflare',1);await page.waitForFunction(()=>!document.querySelector('#buy-button').disabled);
-    check('switching wallets does not attach the previous account pending transaction',!await page.locator('#buy-label').textContent().then(value=>value.includes('pending')));await openChooser(page);await connect(page,'Phantom',0);await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent.includes('Confirmation pending'));
+    check('switching wallets does not attach the previous account pending transaction',!await page.locator('#buy-label').textContent().then(value=>value.includes('pending')));await openChooser(page);await connect(page,'Test Wallet',0);await page.waitForFunction(()=>document.querySelector('#buy-label')?.textContent.includes('Confirmation pending'));
     check('switching back preserves the original pending transaction',await page.locator('#buy-button').isDisabled());check('pending-wallet checks never sign',await page.evaluate(()=>window.__qaWallets.counts.sign===0));await context.close();
   }
   }
@@ -140,7 +146,7 @@ try{
   for(const[name,width,height]of layouts){
     const{page,context}=await fixturePage(width,height);
     if(emptyOnly){await page.waitForFunction(()=>document.querySelector('#timer-caption')?.textContent==='Empty round ends in');check(`${name} empty round describes the actual timer`,await page.locator('#leader-name').textContent()==='No feeds yet');check(`${name} unfunded round has no fabricated jackpot`,parseFloat((await page.locator('#pot-value').textContent()).replace(/,/g,''))===0&&parseFloat((await page.locator('#winner-prize').textContent()).replace(/,/g,''))===0);check(`${name} first-feed explanation is explicit`,await page.locator('.pot-caption').textContent()==='No feeds yet. First feed starts the pot.');await screenshot(page,`${name}-empty-round`);}
-    await openChooser(page);await row(page,'Phantom').waitFor();
+    await openChooser(page);await row(page,'Test Wallet').waitFor();
     const layout=await page.locator('#wallet-dialog').evaluate(dialog=>{const r=dialog.getBoundingClientRect(),buttons=[...dialog.querySelectorAll('[data-wallet-id],#public-wallet-connect,.dialog-close')].filter(el=>getComputedStyle(el).display!=='none');return{inside:r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,pageNoScroll:document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight,buttons:buttons.map(el=>{const b=el.getBoundingClientRect(),hit=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return{height:b.height,width:b.width,visible:b.top>=r.top&&b.bottom<=r.bottom&&!!hit&&(hit===el||el.contains(hit))};})};});
     check(`${name} chooser fits viewport without page scroll`,layout.inside&&layout.pageNoScroll);check(`${name} wallet rows and controls have usable hit targets`,layout.buttons.length>=3&&layout.buttons.every(button=>button.visible&&button.width>=40&&button.height>=40));await screenshot(page,`${name}-chooser`);
     for(const selector of ['.wallet-browser-help','.wallet-account-details']){
@@ -150,7 +156,7 @@ try{
       check(`${name} internal detail scrolling keeps the page fixed`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight&&scrollY===0));
       await summary.scrollIntoViewIfNeeded();await summary.click();
     }
-    await connect(page,'Phantom',0);check(`${name} wallet can connect`,await page.locator('#chain-wallet').textContent()===wallets[0].toBase58());check(`${name} never signs`,await page.evaluate(()=>window.__qaWallets.counts.sign===0));await context.close();
+    await connect(page,'Test Wallet',0);check(`${name} wallet can connect`,await page.locator('#chain-wallet').textContent()===wallets[0].toBase58());check(`${name} never signs`,await page.evaluate(()=>window.__qaWallets.counts.sign===0));await context.close();
   }
   check('no signing, simulation or broadcast RPC was used',!requests.some(method=>['sendTransaction','simulateTransaction'].includes(method)));check('no unexpected external requests or browser errors',failures.length===0);
   await fs.writeFile(path.join(output,'report.json'),JSON.stringify({ok:true,checks,requests,failures,scope:'Isolated production build with Wallet Standard mocks and fake RPC accounts; no real wallet or chain transaction.'},null,2));console.log(JSON.stringify({ok:true,checks:checks.length,output}));

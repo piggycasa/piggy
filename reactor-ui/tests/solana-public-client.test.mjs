@@ -77,7 +77,7 @@ function fixture({simulationError=null,sendError=false,mutate=false,signError=fa
   }};
   let registered=standard?[standardWallet]:[];
   const registry={get:()=>registered,on:(event,callback)=>{registryEvents.set(event,callback);return()=>registryEvents.delete(event);}};
-  const client=createPublicGameClient(config,{connection,storage,onTransaction,walletScope:standard?{}:{phantom:{solana:wallet}},walletRegistry:registry,fetch:async()=>manifest?{status:200,ok:true,json:async()=>manifest}:{status:404,ok:false}});
+  const client=createPublicGameClient(config,{connection,storage,onTransaction,walletScope:standard?{}:{solflare:wallet},walletRegistry:registry,fetch:async()=>manifest?{status:200,ok:true,json:async()=>manifest}:{status:404,ok:false}});
   return{client,connection,counters,listeners,state,accounts,owner,round,game,wallet,standardAccount,
     changeStandardAccounts:next=>{standardAccounts=next;standardEvents.get('change')?.({accounts:next});},
     unregisterStandard:()=>{registered=[];registryEvents.get('unregister')?.(standardWallet);},
@@ -162,4 +162,8 @@ test('cancelling the initial wallet connection leaves a clean client that can co
 test('provider methods cannot disguise a different signed wire transaction',async()=>{
   const f=fixture();await f.client.connect();f.wallet.signTransaction=async tx=>{const original=tx.serializeMessage();const {Transaction}=await import('@solana/web3.js');const replacement=new Transaction({feePayer:f.owner.publicKey,recentBlockhash:tx.recentBlockhash}).add(SystemProgram.transfer({fromPubkey:f.owner.publicKey,toPubkey:pair().publicKey,lamports:100_000_000}));replacement.sign(f.owner);return{serializeMessage:()=>original,serialize:()=>replacement.serialize(),signature:replacement.signature,verifySignatures:()=>true};};await assert.rejects(f.client.feed(feed),/Wallet changed the prepared transaction/);assert.equal(f.counters.send,0);
 });
-test('previously authorized wallet reconnect requests trusted-only approval and never a transaction',async()=>{const f=fixture();let options;f.wallet.connect=async value=>{options=value;return{publicKey:f.owner.publicKey};};await f.client.connect('Phantom',{onlyIfTrusted:true});assert.deepEqual(options,{onlyIfTrusted:true});assert.equal(f.client.connected,true);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);});
+test('previously authorized wallet reconnect requests trusted-only approval and never a transaction',async()=>{const f=fixture();let options;f.wallet.connect=async value=>{options=value;return{publicKey:f.owner.publicKey};};await f.client.connect('Solflare',{onlyIfTrusted:true});assert.deepEqual(options,{onlyIfTrusted:true});assert.equal(f.client.connected,true);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);});
+
+test('Phantom requests are blocked before provider connection or transaction activity',async()=>{
+ const f=fixture();await assert.rejects(f.client.connect('Phantom'),/Waiting for whitelist/);assert.equal(f.client.connected,false);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);f.client.dispose();
+});

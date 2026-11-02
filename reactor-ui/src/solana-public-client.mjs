@@ -9,6 +9,7 @@ import { costForExactKeys } from './solana-curve.mjs';
 import { verifyHolderProof, hexToBytes } from './solana-holder.mjs';
 import { validatePublicConfig } from './solana-config.mjs';
 import { base58Encode, isTransactionSignature } from './solana-signature.mjs';
+import { DISABLED_WALLETS } from './wallet-availability.mjs';
 import { createWalletConnector } from './wallet-connector.mjs';
 
 const ZERO = SystemProgram.programId.toBase58(), COMMITMENT = 'confirmed';
@@ -42,7 +43,7 @@ export async function confirmByPolling(connection,{signature,lastValidBlockHeigh
 }
 export function createPublicGameClient(source,{connection,fetch:fetcher=globalThis.fetch,walletScope=globalThis.window,walletRegistry,storage,onWalletChange=()=>{},onTransaction=()=>{}}={}) {
   const config=validatePublicConfig(source,{origin:globalThis.location?.origin}),conn=connection||new Connection(config.rpcUrl,{commitment:COMMITMENT,confirmTransactionInitialTimeout:60_000,disableRetryOnRateLimit:true});
-  const connector=createWalletConnector({cluster:config.cluster,scope:walletScope,...(walletRegistry?{registry:walletRegistry}:{})});
+  const connector=createWalletConnector({disabledWallets:DISABLED_WALLETS,cluster:config.cluster,scope:walletScope,...(walletRegistry?{registry:walletRegistry}:{})});
   const program=sdk.pk(config.programId),version=BigInt(config.gameVersion),gameAddress=sdk.gameAddress(program,version),holderAddress=sdk.holderConfigAddress(program,gameAddress);
   let provider,wallet,listener,disconnectListener,busy=false,connecting=false,latest,unresolved,proofWarning='',activeActionWallet,minimumAccountSlot=0;const historicalRounds=new Map(),finalizedEpochs=new Map(),finalizedReceipts=new Map(),rentEstimates=new Map();
   if(storage===undefined){try{storage=globalThis.sessionStorage;}catch{/* Browsers may disable session storage. In-memory protection remains. */}}
@@ -118,6 +119,7 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
   async function connect(name,{onlyIfTrusted=false}={}){
     if(busy)throw new Error('Finish the pending transaction before changing wallets.');
     if(connecting)throw new Error('A wallet connection is already in progress.');
+    if(typeof name==='string'&&name.toLowerCase().includes('phantom'))throw new Error('Phantom is temporarily unavailable. Waiting for whitelist.');
     connector.refresh();
     const choice=connector.list().find(item=>!name||item.id===name||item.name===name);if(!choice)throw new Error('No compatible Solana wallet was detected. Open PIGGY in your wallet browser or install a Solana wallet extension.');
     connecting=true;

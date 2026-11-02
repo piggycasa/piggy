@@ -1,3 +1,4 @@
+import { PHANTOM_NOTICE } from './wallet-availability.mjs';
 import './solana-browser-polyfill.mjs';
 import './konterball-fonts.css';
 import './konterball-ui.css';
@@ -826,10 +827,9 @@ async function initializePublicWallet() {
   const connect = element('button', 'secondary-button wallet-retry', 'Connect wallet'); connect.id = 'public-wallet-connect'; connect.type = 'button'; connect.disabled = true; connect.hidden = true;
   const disconnect = element('button', 'wallet-disconnect', 'Disconnect'); disconnect.id = 'public-wallet-disconnect'; disconnect.type = 'button'; disconnect.hidden = true;
   const empty = element('div', 'wallet-empty'); empty.hidden = true;
-  empty.append(element('strong', '', 'No wallet detected in this browser.'), element('p', '', 'On your phone, open PIGGY inside a wallet’s browser. On desktop, install its browser extension.'));
+  empty.append(element('strong', '', 'No supported wallet detected in this browser.'), element('p', '', 'On your phone, open PIGGY inside a wallet’s browser. On desktop, install its browser extension.'));
   const links = element('div', 'wallet-open-links');
   for (const [name, base, install] of [
-    ['Phantom', 'https://phantom.app/ul/browse/', 'https://phantom.com/download'],
     ['Solflare', 'https://solflare.com/ul/v1/browse/', 'https://www.solflare.com/download'],
   ]) {
     const choice = element('div', 'wallet-open-choice');
@@ -884,9 +884,11 @@ async function initializePublicWallet() {
         const marker = element('span', 'wallet-provider-marker'); marker.setAttribute('aria-hidden', 'true');
         row.append(icon, copy, marker); row.addEventListener('click', () => { select.value = choice.id; walletError = ''; connectPublicWallet(choice.id); }); return row;
       }));
+      const phantom=element('button','wallet-provider');phantom.type='button';phantom.disabled=true;phantom.dataset.walletDisabled='phantom';phantom.setAttribute('aria-label',`Phantom: ${PHANTOM_NOTICE}`);const phantomCopy=element('span','wallet-provider-copy');phantomCopy.append(element('strong','','Phantom'),element('span','wallet-provider-detail',PHANTOM_NOTICE));phantom.append(element('span','wallet-provider-icon','P'),phantomCopy);list.append(phantom);
       if (focusedId) list.querySelector(`[data-wallet-id="${CSS.escape(focusedId)}"]`)?.focus({ preventScroll: true });
     }
     for (const row of list.children) {
+      if(row.dataset.walletDisabled){row.disabled=true;continue;}
       const isCurrent = !!chainClient?.connected && row.dataset.walletId === chainClient.walletId;
       const isPending = connecting && row.dataset.walletId === pendingWalletId;
       row.disabled = connecting || disconnecting || chainPending || isCurrent;

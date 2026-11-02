@@ -46,3 +46,9 @@ test('SVG entity/style payloads cannot evade the data-icon sanitizer',()=>{for(c
 
 
 test('malformed or throwing event cleanup cannot break other wallet discovery or disposal',async()=>{const r=registry(),bad=standard({name:'Broken'}),good=standard({name:'Working'});bad.wallet.features['standard:events'].on=()=>({});r.register(bad.wallet,good.wallet);const connector=createWalletConnector({cluster:'mainnet-beta',scope:{},registry:r});assert.deepEqual(connector.list().map(wallet=>wallet.name),['Working']);await connector.list()[0].provider.connect();assert.doesNotThrow(()=>connector.dispose());const throwing=standard();throwing.wallet.features['standard:events'].on=()=>()=>{throw new Error('cleanup');};const second=registry();second.register(throwing.wallet);const another=createWalletConnector({cluster:'mainnet-beta',scope:{},registry:second});assert.doesNotThrow(()=>second.unregister(throwing.wallet));assert.deepEqual(another.list(),[]);another.dispose();});
+
+test('disabled Phantom is filtered across Wallet Standard, legacy and generic aliases while Solflare remains usable',async()=>{
+ const r=registry(),p=standard({name:'Phantom'}),s=standard({name:'Solflare'});r.register(p.wallet,s.wallet);const raw=legacy();raw.isPhantom=true;
+ const connector=createWalletConnector({cluster:'mainnet-beta',registry:r,scope:{phantom:{solana:raw},solana:raw},disabledWallets:['Phantom']});
+ assert.deepEqual(connector.list().map(w=>w.name),['Solflare']);assert.equal(p.calls.connect.length,0);await connector.list()[0].provider.connect();assert.equal(s.calls.connect.length,1);connector.dispose();
+});
