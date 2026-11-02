@@ -10,3 +10,7 @@
 - Previous PIGGY program is permanently retired. Old claims are unavailable; archived test evidence is explicitly historical.
 
 Use [read-only verification](docs/VERIFICATION.md) or the website's [Check live program](https://piggy.casa/verify/). Matching executable bytes is not an independent source build or a security audit.
+
+## Validation for this configuration
+
+251 JavaScript tests passed. A full local-validator rehearsal loaded the unchanged executable and checked 300/30/600 initialization, the cap, key rewards, funded holder claims, duplicate-claim rejection, real-time expiry, settlement, treasury withdrawal and the next five-minute round. See `verification/short-round-local-rehearsal.json`. This is local evidence; the new Mainnet game and token have not yet been initialized.

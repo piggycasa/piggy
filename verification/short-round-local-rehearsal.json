@@ -1,0 +1,62 @@
+{
+  "network": "localnet-only",
+  "programId": "BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph",
+  "game": "FJA7KRV7rrwtYWG85fzFoH2Eut9SMTjgVkPDoCHLGWqG",
+  "timing": {
+    "initialSeconds": 300,
+    "incrementSeconds": 30,
+    "maxSeconds": 600
+  },
+  "checks": [
+    {
+      "name": "same binary accepts 300/30/600 initialization",
+      "ok": true
+    },
+    {
+      "name": "large buy simulation caps actual on-chain clock at ten minutes",
+      "ok": true,
+      "remainingSeconds": 600
+    },
+    {
+      "name": "real feeds use original curve, add thirty seconds and credit prior keys",
+      "ok": true,
+      "firstCost": 75001,
+      "secondCost": 75000,
+      "endTime": 1793651560
+    },
+    {
+      "name": "game and token-holder claims transfer funded rewards and reject repeat claims",
+      "ok": true,
+      "gameLamports": "33750",
+      "holderLamports": "12000"
+    },
+    {
+      "name": "settlement, winner payment, treasury revenue and next five-minute round",
+      "ok": true,
+      "winnerLamports": "36001",
+      "treasuryLamports": "4500",
+      "nextRound": 2
+    }
+  ],
+  "signatures": [
+    "3QGjQAZoikay8CRaahnmY2roCD51n2A68NfxDmGKiMVpTxwSins3gdQW4tCWsRfZBFQX5bTEyBrHobD1vkthcf7w",
+    "4nvHqtSz5enWF6SsFJaUGPT5nwsFucWsqv2KUfr72EKCSBERAG38jkwWwkgRn9tEEbJ1LrEfvqsqYxVmGe35HK4Q",
+    "2w7nrgPYmsts9hVTy6FLoD9yWWbVd51WziYWcXNGcjAkUNJWn59kVd8Edt2axLjmLt5Ygoz1DwHuPeN9BkvDGbFR",
+    "5PdneV6ujJ8oFFHaDnJRpCp8nkmGndo1cr4eJ8P2JeB1NxXqwmaNtEX74N6oQmBaqb24aE1vS5Wan7AZqqyCZthV",
+    "n8qJ5mtqiqmoL9JypD7xTpT39YkhH5N5e7SHd7V6MujKy32B6zTjwDagyvQyWhoe4isPkJwYUnYkstwETCRkWSn",
+    "63V3XUUS6QtGbogc7n1AVULRzEiV34Gae2hYmCubgkg4jhSj1See2Dz2gC2ENFz2jBE6uxM3NCtmvCedkpwgxSoP",
+    "3Nf6BKaxv4XeumoVNe6M38BG4cJ3kmmPZWUcnosG36W91Eh5MyeJSiUhHvW8hgzUy2RFVQzrbJpR478trH9fRYqj",
+    "25phjm4bwMQywDH8ax46L1MCA9BCULuGcYu1Hw3eXPS3VrBgY4q3u8PU19yQLDun2rX7MCg7DGJh8TWUSjXN8LKf",
+    "5qn46YSn8WY6HXBrkLHoVgFZVecaM4XZC4j3VQSukvnEQ5L7xNtBt4Y1oarkAAHUjVxwN6nM592ffnu3UZ2b3CXT",
+    "2V2esRWa2jdBeUv3stWup4Eknae3Z9abbqTd5fi8ZJ6qYKyKRgbbZTyaoWDpGispCXXPCVmXriStJbxGSCFSqPDa",
+    "4XXKXRKdNy8P2CTDH2tiavK8snfBc9oxMrDia5UHzFPoVBthypSNeUyS1ruiMZGKxeuApubZ3ghxT576wASmE8sH",
+    "4Cw3EeqPpqvMefr3GandFVcTcQXYN2QGbYba6XqCtNge8J7EMFoXgvt2j3F1ThoDQGgYfxoCAU5PEGG4PTVHNykT",
+    "4JrDjYz2NN77ur5RFUizwQhQRqFYWhujRPtyTFftAbB9K7W2AYc4697EGjjstok9EGDUpmHMmv3jt6qw7mhAzG37",
+    "4z2tPWC3et7jQPpeEu8D4rRT8NMUECzSo4AujPzC4NVksNkB6PYj4QXAf6t9nKVMTcFn3UHSPnTbX6n5amjR7yJV",
+    "2pMJgGMSpQN2yrQgQw8pdVCAzzX7X22N8fZBUuVkzhAyeuURQnYDJ1XqJUp8aw6vsVVrH8b6nfidToqFE7fAK9k7"
+  ],
+  "complete": true,
+  "scope": "Local validator loaded the unchanged Mainnet executable. This is not a Mainnet game or holder-claim test.",
+  "unitTestsPassed": 251,
+  "programRedeployedOnMainnet": false
+}
