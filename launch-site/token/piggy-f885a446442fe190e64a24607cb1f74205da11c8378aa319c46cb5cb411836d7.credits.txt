@@ -1,0 +1,6 @@
+PIGGY token artwork adapts Piggy Bank Glass by tomgeurts (CC BY 4.0).
+Creator: https://sketchfab.com/tomgeurts
+Original: https://sketchfab.com/3d-models/piggy-bank-glass-08f40fd84cd74766989c99c2afdd6ab7
+License: https://creativecommons.org/licenses/by/4.0/
+Changes: orthographic mesh projection, merged and simplified silhouette, white recolouring on purple, and 1024 x 1024 PNG export.
+No third-party audio is included.

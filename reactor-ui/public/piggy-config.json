@@ -1,11 +1,15 @@
 {
   "schemaVersion": 1,
+  "gameTiming": {
+    "initialSeconds": 300,
+    "incrementSeconds": 30,
+    "maxSeconds": 600
+  },
   "cluster": "mainnet-beta",
   "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
-  "rpcUrl": "https://piggy.casa/rpc",
   "programId": "BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph",
   "gameVersion": "1",
-  "piggyMint": null,
+  "piggyMint": "ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig",
   "expectedAuthorities": {
     "gameCreator": "5rMH86vPLuC6HzuaiiPRqA7qc8nwJ3w3RF5PyoJKwVkW",
     "communityTreasury": "GsNnut7bZLFh3CBMvg5RAzV4U71MADgx2qF4TSDMuEQK",
@@ -13,13 +17,9 @@
     "upgradeAuthority": "T91QQBy8BogXTkdoMzSrecpcTvghp3TmQL2zWNQKswj"
   },
   "priorityFeeMicroLamports": 0,
-  "mainnetEnabled": false,
+  "mainnetEnabled": true,
   "purchaseGuardVersion": 1,
-  "proofIndexUrl": "https://piggy.casa/launch-proofs/index.json",
   "streamflowLocks": true,
-  "gameTiming": {
-    "initialSeconds": 300,
-    "incrementSeconds": 30,
-    "maxSeconds": 600
-  }
+  "rpcUrl": "https://piggy.casa/rpc",
+  "proofIndexUrl": "https://piggy.casa/launch-proofs/index.json"
 }

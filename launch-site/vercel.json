@@ -45,8 +45,20 @@
       "destination": "https://piggy-play.windyhen258.chatgpt.site/proofs/:path*"
     },
     {
+      "source": "/launch-status",
+      "destination": "https://piggy-operators-v2-production.up.railway.app/launch-status"
+    },
+    {
       "source": "/launch-proofs/:path*",
-      "destination": "https://piggy-launch-proofs.windyhen258.chatgpt.site/proofs/:path*"
+      "destination": "https://piggy-operators-v2-production.up.railway.app/proofs/:path*"
+    },
+    {
+      "source": "/play",
+      "destination": "/play/index.html"
+    },
+    {
+      "source": "/play/",
+      "destination": "/play/index.html"
     }
   ]
 }
