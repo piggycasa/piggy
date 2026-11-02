@@ -1,0 +1,18 @@
+{
+  "network": "mainnet-beta",
+  "programId": "BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph",
+  "game": "8st27x3wj5DEXnJX3jSmaSLxmHaZZqi9vS3kP3LH2poi",
+  "mint": "ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig",
+  "scheduledTime": "2026-11-02T21:45:00Z",
+  "roundStartedUnix": 1793655904,
+  "timing": {
+    "initialSeconds": 300,
+    "incrementSeconds": 30,
+    "maxSeconds": 600
+  },
+  "initializationSignature": "3ahcJy4REq86JsRH9X5fyDfVkJ7gnxRtw85cLATfR5y32rqC7CK2XVCWw1tXB7emxoM7giz7ypoNcVeyQwyWVpPz",
+  "roundOneSignature": "5ZcRPtAvhDumfs2X4QmaJCGMg8apx6nLbiwx2Ud6FjhWUgPipoSnVmj3uQFDdySidWkVkxvW54wt863kFeoNH7ni",
+  "programUpgraded": false,
+  "controlsChanged": false,
+  "userElected": "Keep launch; disclose current controls"
+}

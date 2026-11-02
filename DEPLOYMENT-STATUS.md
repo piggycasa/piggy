@@ -1,3 +1,11 @@
+# PIGGY is live — 2 November 2026
+
+The automatic coordinator initialized the existing Mainnet program after the 21:45 UTC gate. Round 1 started at Unix time 1793655904 (21:45:04 UTC). The token is `ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig`. The game is `8st27x3wj5DEXnJX3jSmaSLxmHaZZqi9vS3kP3LH2poi`. Actual decoded timing is 300 / 30 / 600 seconds. Both operator roles reported healthy and the public landing page transitioned to `/play/`.
+
+The user elected to launch with existing controls disclosed: upgrade authority is retained, and holder allocation accuracy trusts the publisher. Neither authority was revoked or changed. The executable and original pricing/payout rules remain unchanged. See the [current release manifest](verification/release.json) and [verification instructions](docs/VERIFICATION.md).
+
+## Preparation and validation history
+
 # Deployment status — 2 November 2026
 
 - Mainnet program: `BVqivL3X8JvuaNgiVAZb9WitRnT2LYGPLvdm3tD8a6Ph`.

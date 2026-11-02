@@ -12,7 +12,7 @@
   "recordedSourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
   "observedUpgradeAuthority": "T91QQBy8BogXTkdoMzSrecpcTvghp3TmQL2zWNQKswj",
   "observedAt": "2026-11-02",
-  "observedSlot": 464629437,
+  "observedSlot": 464651156,
   "deploymentSlot": 462569982,
   "toolchain": {
     "cargoBuildSbf": "4.0.0",
@@ -31,12 +31,20 @@
   "sourcePath": "program",
   "sourceTreeSha256": "1dfdc1cd411970f7d56659e10e4a6b0af760a091d79437dbf2920e076cd13211",
   "gameVersion": "1",
-  "gameAccount": null,
-  "piggyMint": null,
-  "gameInitialized": false,
+  "gameAccount": "8st27x3wj5DEXnJX3jSmaSLxmHaZZqi9vS3kP3LH2poi",
+  "piggyMint": "ohDvYwXKGneAyUGDpjB7NgGPbL27Zf9NPAZtftAepig",
+  "gameInitialized": true,
   "plannedTiming": {
     "initialSeconds": 300,
     "incrementSeconds": 30,
     "maxSeconds": 600
+  },
+  "holderConfig": "Coe8fsRLSt1s6QPQ3HCNP9qaHNBy6UeV4ftotnfiiSia",
+  "holderVault": "21Daidf3ke4b22ea87baRAS9BoLfo7XQwqDowrb3KCsG",
+  "initialRound": {
+    "roundId": "1",
+    "roundAccount": "96uorqxa7TKosZzqNvErbM3JhNVtdMntw61TUnf92JMb",
+    "potAccount": "9PMt4USAh87rxGq9WjWLJKpWVMpvcGPgXrQ4BjQxzNDo",
+    "startTime": 1793655904
   }
 }
