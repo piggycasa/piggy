@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /><meta name="theme-color" content="#4325f5" /><meta name="description" content="Compare PIGGY’s deployed program with its release, read the public source and see who retains control." /><link rel="icon" href="/favicon.svg" type="image/svg+xml" /><title>PIGGY — Code and control</title></head>
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /><meta name="theme-color" content="#4325f5" /><meta name="description" content="Compare PIGGY’s deployed program with its release, read the public source and see who retains control." /><link rel="icon" href="/favicon.svg" type="image/svg+xml" /><title>PIGGY: Open source and verification</title><style>.source-hero-link{display:inline-block;padding:8px 14px;margin:8px 0 0;border:1px solid #f7ff4a;background:#f7ff4a;color:#21105f;font-size:15px;font-weight:600;text-decoration:none}.source-hero-link:hover{background:#fff;color:#21105f}@media(max-height:500px){.source-hero-link{font-size:12px;padding:5px 9px;margin-top:3px}}</style></head>
 <body>
   <div class="verification-shell">
     <header><a class="brand" href="/" aria-label="PIGGY home"><img src="/piggy-mark.svg" alt="" />PIGGY</a><a class="back" href="/">Back to the game</a></header>
     <main>
-      <div class="verification-intro"><h1>Code and control.</h1><p>Public source. Mainnet addresses. Checks you can run.</p></div>
+      <div class="verification-intro"><h1>Code and control.</h1><p>Open-source program, app and operator code. <a class="source-hero-link" href="https://github.com/piggycasa/piggy" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a></p></div>
       <nav aria-label="Verification topics"><button data-tab="release" aria-current="page">Check the release</button><button data-tab="control">Who has control?</button><button data-tab="source">Source &amp; steps</button></nav>
       <div class="panels">
         <section id="release-panel" data-panel="release" aria-labelledby="release-heading">
@@ -24,7 +24,7 @@
           <h2 id="source-heading">Read it. Check it yourself.</h2>
           <div class="source-columns"><div>
             <p>PIGGY’s program, interface and operator code are public. The recorded Rust source digest matches the inputs used for this release. A clean independent source-to-binary build has not been verified.</p>
-            <div class="source-links"><a href="https://github.com/piggycasa/piggy" target="_blank" rel="noopener noreferrer">PIGGY source on GitHub ↗</a><a id="program-source-link" href="https://github.com/piggycasa/piggy/tree/f7ba440e8667dd920d89bf6a8fba0158c3887e68/program" target="_blank" rel="noopener noreferrer">Program source for this release ↗</a><a href="https://github.com/piggycasa/piggy/blob/main/docs/VERIFICATION.md" target="_blank" rel="noopener noreferrer">Full verification instructions ↗</a><a href="/verification/release.json" target="_blank" rel="noopener noreferrer">Release manifest and hashes ↗</a><a href="/verification/piggy-mainnet.so" download>Download published executable (.so)</a></div>
+            <div class="source-links"><a href="https://github.com/piggycasa/piggy" target="_blank" rel="noopener noreferrer">Open source on GitHub ↗</a><a id="program-source-link" href="https://github.com/piggycasa/piggy/tree/f7ba440e8667dd920d89bf6a8fba0158c3887e68/program" target="_blank" rel="noopener noreferrer">Program source for this release ↗</a><a href="https://github.com/piggycasa/piggy/blob/main/docs/VERIFICATION.md" target="_blank" rel="noopener noreferrer">Full verification instructions ↗</a><a href="/verification/release.json" target="_blank" rel="noopener noreferrer">Release manifest and hashes ↗</a><a href="/verification/piggy-mainnet.so" download>Download published executable (.so)</a></div>
           </div><div>
             <ol class="verify-steps"><li><strong>Check the live release.</strong><p>Use “Check live program” on the first tab. No wallet is needed. It reads finalized mainnet accounts and compares the executable SHA-256.</p></li><li><strong>Use your own RPC.</strong><p>Clone the public repo and run its read-only checker. It checks the cluster, loader, ProgramData, complete executable and upgrade authority.</p><pre><code>git clone https://github.com/piggycasa/piggy.git
 cd piggy
