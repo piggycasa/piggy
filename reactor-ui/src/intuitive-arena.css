@@ -726,3 +726,11 @@ dialog .reward-card h3{color:var(--pig-lime)}
  #arena .position-values{grid-template-columns:1fr 1fr;gap:12px}
  #arena .ticket-bottom{grid-column:1/-1;grid-row:5;justify-content:flex-end}
 }
+
+.piggy-studio .topbar nav>.history-button{display:flex;align-items:center;gap:6px}
+.piggy-studio .history-button svg{width:18px;height:18px}
+@media(max-width:999px),(max-height:600px){.piggy-studio .topbar nav>.history-button{display:flex;min-width:44px;min-height:44px;justify-content:center}.piggy-studio .history-button>span{display:none}}
+@media(max-width:380px){.piggy-studio .topbar nav>.sound-button{display:none}}
+.quote-update:not([hidden])~.purchase-footnote{display:none}
+#arena .quote-update{width:100%;margin:0;text-align:left;flex:none}
+#arena .quote-update strong span{display:block;margin:2px 0 0}

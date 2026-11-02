@@ -51,7 +51,7 @@ if (claimOnly) document.documentElement.classList.add('test-claims-mode');
 let chainClient, chainReady = false, chainHasState = false, chainPending = false, chainFailure = '', chainPollBusy = false;
 let settlementRound, settlementAttempts = 0, nextSettlementAttempt = 0;
 let activeChainAction = null, claimProgress = null, claimResult = null, returnToClaims = false;
-let cachedPurchaseQuote = null, previewSecond = -1;
+let cachedPurchaseQuote = null, previewSecond = -1, refreshedQuoteReview = null, historyLoading = false, historyError = '';
 let jackpotUsdAnimating = false, lootUsdAnimating = false;
 let displayedJackpot = null, displayedLoot = null;
 let connectPublicWallet, openPublicWallet;
@@ -378,6 +378,14 @@ function renderQuoteReview(quote,count,preview) {
   review.append(element('small','','USD is an estimate. Your wallet pays SOL; temporary rent is returned in the same transaction.'));
 }
 
+function renderRefreshedQuote(quote){
+  const notice=$('#quote-update');if(!notice)return;
+  const show=!!refreshedQuoteReview&&quote.ok&&state.round.status==='active'&&timeRemaining(state,now())>0&&getQuantity()===refreshedQuoteReview.count&&(!publicChain||moneyState().walletKnown);
+  notice.hidden=!show;if(!show)return;
+  $('#quote-update-price').textContent=`${money(refreshedQuoteReview.previousCost)} → ${money(quote.cost)} SOL`;
+  $('#quote-update-detail').textContent=`${refreshedQuoteReview.count.toLocaleString()} ${refreshedQuoteReview.count===1?'key':'keys'}. Nothing sent. Click Feed again to approve.`;
+  if(!chainPending&&chainReady&&!$('#buy-button').disabled)$('#buy-label').textContent='Feed at updated price';
+}
 function renderPurchase() {
   const count = getQuantity();
   const quote = getQuote();
@@ -505,6 +513,7 @@ function renderPurchase() {
     $('#purchase-outcome').textContent = chainFailure ? publicChain ? chainFailure : 'Solana is unavailable. Open Wallet for details.' : 'Connecting…';
   }
   renderUsdAmounts(quote);
+  renderRefreshedQuote(quote);
   if (claimOnly) {
     $('#buy-button').disabled=true; $('#buy-label').textContent='Test claims only';
     $('.demo-badge').lastChild.textContent='Test claims · SOL';
@@ -555,19 +564,30 @@ function renderActivity() {
   }
 }
 function renderHistory() {
-  const list = $('#history-list'); list.replaceChildren();
-  if (!state.history.length) {
-    const empty = element('div', 'empty-history');
-    empty.append(element('strong', '', 'No completed rounds yet.'), element('span', '', 'The jackpot winner and actual payout will appear here.'));
-    list.append(empty); return;
+  const list=$('#history-list');list.replaceChildren();
+  const info=state.historyInfo;
+  $('#history-summary').textContent=publicChain?`${info?.total??state.history.length} completed rounds · verified on Solana`:'Completed rounds';
+  if(!state.history.length){const empty=element('div','empty-history');empty.append(element('strong','','No completed rounds yet.'),element('span','','Settled rounds appear here for everyone.'));list.append(empty);}
+  for(const item of state.history){
+    const row=element('div','history-item'),left=element('div'),right=element('div');
+    const winner=item.winnerWallet||item.winnerId;
+    const winnerLabel=!winner?'No buyer · rolled forward':item.winnerId==='you'?'You':publicChain?`${winner.slice(0,4)}…${winner.slice(-4)}`:nameOf(item.winnerId);
+    left.append(element('strong','',`Round ${String(item.roundId).padStart(2,'0')}`),element('span','',winnerLabel));
+    if(item.endedAt)left.append(element('time','',new Date(item.endedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
+    right.append(element('strong','',`${money(item.winnerId?item.winnerPrize:item.rolloverAmount)} SOL`),element('span','',item.winnerId?`${item.totalKeys.toLocaleString()} keys · Jackpot allocated`:'Carried to next round'));
+    if(item.roundAddress){const link=element('a','','View on Solana ↗');link.href=`https://explorer.solana.com/address/${item.roundAddress}${state.chain.network==='mainnet-beta'?'':`?cluster=${state.chain.network}`}`;link.target='_blank';link.rel='noopener noreferrer';right.append(link);}
+    row.append(left,right);list.append(row);
   }
-  for (const item of state.history) {
-    const row = element('div', 'history-item'); const left = element('div'); const right = element('div');
-    left.append(element('strong', '', `Round ${String(item.roundId).padStart(2, '0')}`), element('span', '', item.winnerId ? nameOf(item.winnerId) : 'No buyer · funds rolled forward'));
-    right.append(element('strong', '', `${money(item.winnerId ? item.winnerPrize : item.rolloverAmount)} SOL`), element('span', '', item.winnerId ? `${item.totalKeys} keys · Pot paid` : 'Carried to next round'));
-    row.append(left, right); list.append(row);
-  }
+  const more=$('#history-more');more.hidden=!publicChain||!info?.hasMore;more.disabled=historyLoading;more.textContent=historyLoading?'Loading older rounds…':'Load older rounds';
+  $('#history-status').textContent=historyError||(info?.hasMore?`Showing ${info.loaded} of ${info.total}. Older rounds remain available below.`:state.history.length?'All completed rounds shown.':'');
 }
+async function loadOlderRounds(){
+  if(historyLoading||!chainClient?.getHistory)return;historyLoading=true;historyError='';renderHistory();
+  try{const result=await chainClient.getHistory({beforeRound:state.historyInfo?.oldestRound??state.round.id});state.history=result.history;state.historyInfo=result.historyInfo;}
+  catch(error){historyError=`Could not load older rounds. ${error.message}`;}
+  finally{historyLoading=false;renderHistory();}
+}
+$('#history-more').addEventListener('click',loadOlderRounds);
 function renderAll() {
   const settled = state.round.status === 'settled';
   const id = settled ? state.round.winnerId : state.round.lastBuyerId;
@@ -600,12 +620,12 @@ function renderAll() {
     $('#core-state').textContent = 'Waiting for confirmed game accounts.';
   }
 }
-function changeQuantity(value) { $('#key-quantity').value = String(value); renderPurchase(); }
+function changeQuantity(value) { refreshedQuoteReview=null; $('#key-quantity').value = String(value); renderPurchase(); }
 $('#decrease').addEventListener('click', () => changeQuantity(Math.max(1, getQuantity() - 1)));
 $('#increase').addEventListener('click', () => changeQuantity(Math.min(10_000, getQuantity() + 1)));
-$('#key-quantity').addEventListener('input', renderPurchase);
+$('#key-quantity').addEventListener('input',()=>{refreshedQuoteReview=null;renderPurchase();});
 $('#key-quantity').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur(); } });
-$('#reward-mode').addEventListener('change', renderPurchase);
+$('#reward-mode').addEventListener('change',()=>{refreshedQuoteReview=null;renderPurchase();});
 $('#referral-wallet').addEventListener('input', renderPurchase);
 document.querySelectorAll('[data-quantity]').forEach(button => button.addEventListener('click', () => changeQuantity(Number(button.dataset.quantity))));
 $('#max-keys').addEventListener('click', () => {
@@ -711,7 +731,7 @@ async function adoptChain(raw, { feedbackEnabled = true } = {}) {
   const previousRound = state.round.id, previousStatus = state.round.status, previousKeys = state.round.totalKeys;
   const next = chainView(raw);
   state = next; offset = next.lastActionAt - Date.now(); chainReady = true; chainHasState = true; chainFailure = '';
-  if (previousRound !== next.round.id) { clearPayoutPreview(); feedback.clear(); }
+  if (previousRound !== next.round.id) { refreshedQuoteReview=null;clearPayoutPreview(); feedback.clear(); }
   if (feedbackEnabled && previousRound === next.round.id) {
     const change = getPurchaseRewardChange(before, captureRewardPosition(state));
     if (previousStatus === 'active' && next.round.status === 'settled') {
@@ -752,13 +772,21 @@ async function runChainAction(action, parameters = {}) {
     if (response.ok === false) throw new Error(response.error || 'Solana rejected this transaction.');
     if(publicChain&&response.wallet&&response.wallet!==chainClient.wallet){await refreshChainAfterAction();toast('Previous wallet transaction confirmed',`Check ${response.signature} in the wallet that signed it.`);return;}
     if (isClaimAction) claimResult = { kind: action === 'claimHolder' ? 'holder' : 'game', status: 'success', wallet: actionWallet, warning: response.warning };
-    presentTransactionSignature(response.signature || response.signatures?.at(-1));
+    refreshedQuoteReview=null;presentTransactionSignature(response.signature || response.signatures?.at(-1));
     try { await adoptChain(response.state || await chainClient.getState()); }
     catch(error) { chainReady=false; chainFailure='Transaction confirmed. Balances are refreshing; check its signature in Wallet.'; toast('Transaction confirmed',chainFailure); return; }
     if (action === 'startRound') { lastFeedEvent = null; lootMessageOverride = ''; clearLootPayment(); changeQuantity(1); screens.wipe(); }
     const titles = { feed: 'Piggy fed', feedNpc: 'Test feeder confirmed', claimGame: 'Game SOL claimed', claimHolder: '$PIGGY holder SOL claimed', endRound: 'Piggy paid out', startRound: 'New Piggy round opened', publishHolderEpoch: 'Holder rewards funded', withdrawCommunity: 'Community fees claimed' };
     toast(titles[action] || 'Transaction confirmed', response.warning || `Confirmed on ${publicChain ? state.chain.network : 'your local Solana validator'}.`);
-  } catch (error) { if (isClaimAction) claimResult = { kind: action === 'claimHolder' ? 'holder' : 'game', status: error.name === 'PendingTransactionError' ? 'pending' : 'error', wallet: actionWallet, message: error.message }; if(error.signature) presentTransactionSignature(error.signature); toast(error.name === 'PendingTransactionError' ? 'Confirmation pending' : 'Transaction not completed', error.message, true); await refreshChainAfterAction(); }
+  } catch (error) {
+    if(action==='feed'&&error.name==='QuoteRefreshRequiredError'&&!error.signature){
+      try{await adoptChain(await chainClient.getState(),{feedbackEnabled:false});refreshedQuoteReview={previousCost:Number(parameters.maxCostLamports),count:parameters.count};renderPurchase();toast('Quote refreshed','Review the updated price, then click Feed again. Nothing was sent.');}
+      catch{chainReady=false;chainFailure='Could not refresh the quote yet. Reconnecting…';toast('Waiting for a fresh quote','Nothing was sent. The price will refresh when Solana responds.',true);}
+    }else{
+      if(isClaimAction)claimResult={kind:action==='claimHolder'?'holder':'game',status:error.name==='PendingTransactionError'?'pending':'error',wallet:actionWallet,message:error.message};
+      if(error.signature)presentTransactionSignature(error.signature);toast(error.name==='PendingTransactionError'?'Confirmation pending':'Transaction not completed',error.message,true);await refreshChainAfterAction();
+    }
+  }
   finally { chainPending = false; activeChainAction = null; claimProgress = null; renderAll(); }
 }
 function presentTransactionSignature(signature){

@@ -99,7 +99,7 @@ export function chainView(raw) {
   };
   return {
     version: 4, network: typeof raw.network === 'string' ? raw.network : raw.network?.name || 'localnet', economyVersion: 'solana-program-v2', localPlayerId: 'you',
-    players, round, totalTokenSupply: integer(raw.holder?.totalEligibleTokenBalance ?? raw.players.reduce((sum, p) => sum + big(p.tokenBalance ?? p.token_balance), 0n)), history: raw.history || [], activity: raw.activity || [],
+    players, round, totalTokenSupply: integer(raw.holder?.totalEligibleTokenBalance ?? raw.players.reduce((sum, p) => sum + big(p.tokenBalance ?? p.token_balance), 0n)), history: raw.history || [], historyInfo: raw.historyInfo, activity: raw.activity || [],
     communityReserve: integer(big(r.accum_community_share) - big(r.withdrawn_com)),
     rolloverReserve: integer(big(r.accum_next_round_share) - big(r.withdrawn_next_round)),
     airdropReserve: integer(r.accum_airdrop_share), lastActionAt: integer(raw.chainNow) * 1_000,

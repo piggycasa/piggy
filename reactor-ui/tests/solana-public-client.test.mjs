@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Keypair, SystemProgram, SYSVAR_CLOCK_PUBKEY, PublicKey, Transaction } from '@solana/web3.js';
+import { Keypair, SystemProgram, SYSVAR_CLOCK_PUBKEY, PublicKey, Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import * as sdk from '../src/solana-instructions.mjs';
 import { CLUSTER_GENESIS, validatePublicConfig, selectClientMode, isPrivateHost, loadPublicConfig } from '../src/solana-config.mjs';
 import { createPublicGameClient, validateProofManifest, PendingTransactionError, walletProofUrl, confirmByPolling } from '../src/solana-public-client.mjs';
@@ -62,7 +62,7 @@ function fixture({simulationError=null,sendError=false,mutate=false,signError=fa
     getMultipleAccountsInfoAndContext:async keys=>({context:{slot:100},value:keys.map(key=>accounts.get(key.toBase58())||null)}),getMultipleAccountsInfo:async keys=>keys.map(key=>accounts.get(key.toBase58())||null),getAccountInfo:async key=>accounts.get(key.toBase58())||null,
     getProgramAccounts:async()=>[],getBalance:async()=>10_000_000_000,getTokenAccountsByOwner:async()=>({value:[]}),getMinimumBalanceForRentExemption:async()=>2_000_000,getSlot:async()=>state.slot,
     getLatestBlockhashAndContext:async()=>({context:{slot:100},value:{blockhash:pair().publicKey.toBase58(),lastValidBlockHeight:1000}}),getFeeForMessage:async()=>({value:5000}),
-    simulateTransaction:async tx=>{counters.simulate++;assert.equal(tx.message.compiledInstructions[4].data[0],11);return{value:{err:simulationError}};},getBlockHeight:async()=>100,
+    simulateTransaction:async tx=>{counters.simulate++;assert.equal(tx.message.compiledInstructions[5].data[0],11);return{value:{err:simulationError}};},getBlockHeight:async()=>100,
     sendRawTransaction:async bytes=>{counters.send++;if(sendError)throw new Error('transport dropped');if(!confirmError)state.status={err:null,confirmationStatus:'confirmed'};const {Transaction}=await import('@solana/web3.js');return base58Encode(Transaction.from(bytes).signature);},
     confirmTransaction:async()=>{if(confirmError)throw new Error('RPC timeout');return{value:{err:null}};},getSignatureStatuses:async()=>({value:[state.status]}),
   };
@@ -102,7 +102,7 @@ test('Wallet Standard account changes and unregistration clear the active identi
 test('wrong-network, higher-cost, stale-round and rejected simulation paths never request a wallet signature',async()=>{
   const wrong=fixture({wrongGenesis:true});await assert.rejects(wrong.client.connect(),/wrong Solana network/);assert.equal(wrong.counters.sign,0);
   for(const changed of[{maxCostLamports:'75000'},{expectedRound:'2'},{maxCostLamports:undefined}]){const f=fixture();await f.client.connect();await assert.rejects(f.client.feed({...feed,...changed}));assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);}
-  const f=fixture({simulationError:{InstructionError:[4,{Custom:22}]}});await f.client.connect();await assert.rejects(f.client.feed(feed),/simulation rejected/);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);
+  const f=fixture({simulationError:{InstructionError:[4,{Custom:22}]}});await f.client.connect();await assert.rejects(f.client.feed(feed),{name:'QuoteRefreshRequiredError'});assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);
 });
 test('user rejection and message mutation cannot broadcast',async()=>{
   for(const opts of[{mutate:true},{signError:true}]){const f=fixture(opts);await f.client.connect();await assert.rejects(f.client.feed(feed));assert.equal(f.counters.send,0);}
@@ -171,4 +171,24 @@ test('Phantom connects without requesting a transaction signature',async()=>{
 
 test('wallet signs before temporary-account signers and final submission has all signatures',async()=>{
  const f=fixture();await f.client.connect();const original=f.wallet.signTransaction;let checked=false;f.wallet.signTransaction=async tx=>{assert.equal(tx.signatures.some(s=>s.signature!==null),false);checked=true;return original(tx);};const result=await f.client.feed(feed);assert.equal(result.ok,true);assert.equal(checked,true);assert.equal(f.counters.send,1);f.client.dispose();
+});
+
+test('a stale-price simulation requires a new user action and never signs or retries automatically',async()=>{
+ const f=fixture();await f.client.connect();let simulations=0;
+ f.connection.simulateTransaction=async()=>{simulations++;return{value:{err:{InstructionError:[5,{Custom:22}]}}};};
+ await assert.rejects(f.client.feed(feed),{name:'QuoteRefreshRequiredError'});
+ await f.client.getState();assert.equal(simulations,1);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);f.client.dispose();
+});
+test('an explicit priority-fee instruction prevents a wallet from supplying an unreviewed fee',async()=>{
+ const f=fixture({phantom:true});await f.client.connect('Phantom');const sign=f.wallet.signTransaction;
+ f.wallet.signTransaction=async tx=>{const fees=tx.instructions.filter(ix=>ix.programId.equals(ComputeBudgetProgram.programId)&&ix.data[0]===3);assert.equal(fees.length,1);assert.equal(fees[0].data.readBigUInt64LE(1),0n);return sign(tx);};
+ assert.equal((await f.client.feed(feed)).ok,true);assert.equal(f.counters.send,1);f.client.dispose();
+});
+test('whole-game history loads older pages, retains them across polls, and needs no wallet',async()=>{
+ const f=fixture(),game=f.accounts.get(f.game.toBase58()),template=f.accounts.get(f.round.toBase58());game.data.writeBigUInt64LE(31n,1);
+ for(let id=1n;id<=31n;id++){const data=Buffer.from(template.data);data.writeBigUInt64LE(id,1);data[58]=id<31n?1:0;f.accounts.set(sdk.roundAddress(program,id,123n).toBase58(),{...template,data});}
+ const initial=await f.client.getState();assert.equal(initial.history.length,20);assert.equal(initial.historyInfo.total,30);assert.equal(initial.historyInfo.hasMore,true);assert.equal(initial.history.at(-1).roundId,11);
+ const older=await f.client.getHistory({beforeRound:initial.historyInfo.oldestRound});assert.equal(older.history.length,30);assert.equal(older.history.at(-1).roundId,1);assert.equal(older.historyInfo.hasMore,false);
+ assert.equal((await f.client.getState()).history.length,30);assert.equal(f.counters.sign,0);assert.equal(f.counters.send,0);
+ await assert.rejects(f.client.getHistory({beforeRound:32}),/cursor/);await assert.rejects(f.client.getHistory({limit:101}),/page size/);f.client.dispose();
 });

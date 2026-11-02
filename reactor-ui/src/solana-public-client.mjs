@@ -25,6 +25,9 @@ export function validateProofManifest(manifest,config,wallet) {
     seen.add(String(record.epoch));return{epoch:BigInt(record.epoch),amount:BigInt(record.amount),proof:record.proof.map(hexToBytes)};
   });
 }
+export class QuoteRefreshRequiredError extends Error {
+  constructor(message='The quote changed. Review the updated price before feeding again.'){super(message);this.name='QuoteRefreshRequiredError';}
+}
 export class PendingTransactionError extends Error {
   constructor(signature){super(`Confirmation is pending. Check transaction ${signature} before retrying; it may already have landed.`);this.name='PendingTransactionError';this.signature=signature;}
 }
@@ -93,6 +96,24 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     return{records,earned,claimed,claimable:earned-claimed};
   }
   async function batchAccounts(addresses,commitment){const found=new Map();for(let offset=0;offset<addresses.length;offset+=100){const chunk=addresses.slice(offset,offset+100),values=await conn.getMultipleAccountsInfo(chunk,commitment===COMMITMENT?confirmedRead():commitment);for(const[index,address]of chunk.entries())found.set(address.toBase58(),values[index]);}return found;}
+  async function loadHistoryRange(first,last){
+    const missing=[];for(let id=first;id<=last;id++)if(!historicalRounds.has(String(id)))missing.push(id);
+    for(let offset=0;offset<missing.length;offset+=20){const ids=missing.slice(offset,offset+20),values=await conn.getMultipleAccountsInfo(ids.map(id=>sdk.roundAddress(program,id,version)),confirmedRead());
+      for(const[index,value]of values.entries()){const prior=decoded(value,sdk.decodeRound);if(prior.round_id!==ids[index]||!prior.ended)throw new Error('Completed round history is inconsistent.');historicalRounds.set(String(prior.round_id),prior);}}
+  }
+  function historySnapshot(game,round){
+    const records=new Map(historicalRounds);if(round?.ended)records.set(String(round.round_id),round);
+    const history=[...records.values()].sort((a,b)=>a.round_id>b.round_id?-1:1).map(r=>({roundId:exact(r.round_id),winnerId:r.lead_player_pk===ZERO?null:r.lead_player_pk===wallet?'you':r.lead_player_pk,winnerWallet:r.lead_player_pk===ZERO?null:r.lead_player_pk,totalKeys:exact(r.accum_keys),winnerPrize:exact(r.final_prize_share),endedAt:exact(r.end_time)*1000,roundAddress:sdk.roundAddress(program,r.round_id,version).toBase58(),rolloverAmount:exact(r.accum_next_round_share+r.accum_airdrop_share+r.accum_airdrop_carried)}));
+    const total=exact(game.round_id-(round?.ended?0n:1n)),oldest=history.at(-1)?.roundId;
+    return{history,historyInfo:{total,loaded:history.length,hasMore:total>0&&(!oldest||oldest>1),oldestRound:oldest??null}};
+  }
+  async function getHistory({beforeRound,limit=20}={}){
+    if(!Number.isSafeInteger(limit)||limit<1||limit>100)throw new Error('History page size must be 1–100 rounds.');
+    const {game}=await identity(),round=await account(sdk.roundAddress(program,game.round_id,version),sdk.decodeRound);
+    const before=beforeRound===undefined?game.round_id:BigInt(beforeRound);if(before<1n||before>game.round_id)throw new Error('Invalid history cursor.');
+    const last=before-1n,first=last>=BigInt(limit)?last-BigInt(limit)+1n:1n;await loadHistoryRange(first,last);
+    return historySnapshot(game,round);
+  }
   async function getState(){
     if(unresolved){try{const result=await resolvePending();if(result)onTransaction({...result,wallet});}catch(error){if(!(error instanceof PendingTransactionError))throw error;}}
     const who=wallet,identityState=await identity(),{game,holder,decimals,supply,eligibilityTokenProgram}=identityState;
@@ -109,11 +130,9 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     const clock=await conn.getAccountInfo(SYSVAR_CLOCK_PUBKEY,confirmedRead());if(!clock||clock.data.length<40)throw new Error('Solana clock is unavailable.');
     if(wallet!==who)throw new Error('Wallet changed while reading balances. Refreshing the new account.');
     const current=playerRecords.find(row=>row.player.round_id===game.round_id)?.player||null;
-    const first=game.round_id>20n?game.round_id-19n:1n,missing=[];
-    for(let id=first;id<game.round_id;id++)if(!historicalRounds.has(String(id)))missing.push(id);
-    if(missing.length){const values=await conn.getMultipleAccountsInfo(missing.map(id=>sdk.roundAddress(program,id,version)),confirmedRead());for(const[index,value]of values.entries()){const prior=decoded(value,sdk.decodeRound);if(prior.round_id!==missing[index]||!prior.ended)throw new Error('Completed round history is inconsistent.');historicalRounds.set(String(prior.round_id),prior);}}
-    const history=[...historicalRounds.values(),...(round.ended?[round]:[])].filter(r=>r.round_id>=first).sort((a,b)=>a.round_id>b.round_id?-1:1).map(r=>({roundId:exact(r.round_id),winnerId:r.lead_player_pk===ZERO?null:r.lead_player_pk===who?'you':r.lead_player_pk,totalKeys:exact(r.accum_keys),winnerPrize:exact(r.final_prize_share),rolloverAmount:exact(r.accum_next_round_share+r.accum_airdrop_share+r.accum_airdrop_carried)}));
-    const raw={game,round,players:[{id:'you',name:who?short(who):'Connect wallet',wallet:who||ZERO,balance,tokenBalance,playerRound:current,playerRounds:playerRecords,holder:holderRewards}],holder:{config:holder,decimals,totalEligibleTokenBalance:supply,proofWarning,claimCosts,wallets:{[who||ZERO]:holderRewards}},history,activity:[],chainNow:Buffer.from(clock.data).readBigInt64LE(32),network:{name:config.cluster,genesisHash:config.genesisHash,testMint:config.cluster!=='mainnet-beta'},programId:config.programId,piggyMint:config.piggyMint,version:config.gameVersion,walletConnected:!!who,slot:identityState.slot};
+    await loadHistoryRange(game.round_id>20n?game.round_id-20n:1n,game.round_id-1n);
+    const {history,historyInfo}=historySnapshot(game,round);
+    const raw={game,round,players:[{id:'you',name:who?short(who):'Connect wallet',wallet:who||ZERO,balance,tokenBalance,playerRound:current,playerRounds:playerRecords,holder:holderRewards}],holder:{config:holder,decimals,totalEligibleTokenBalance:supply,proofWarning,claimCosts,wallets:{[who||ZERO]:holderRewards}},history,historyInfo,activity:[],chainNow:Buffer.from(clock.data).readBigInt64LE(32),network:{name:config.cluster,genesisHash:config.genesisHash,testMint:config.cluster!=='mainnet-beta'},programId:config.programId,piggyMint:config.piggyMint,version:config.gameVersion,walletConnected:!!who,slot:identityState.slot};
     latest=raw;return raw;
   }
   async function connect(name,{onlyIfTrusted=false}={}){
@@ -132,7 +151,7 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
   }
   async function disconnect(){if(busy)throw new Error('Finish the pending transaction before disconnecting.');if(provider){const previous=provider;clearConnection();await previous.provider.disconnect?.();}}
   async function temporaryWsol(amount=0n){const pair=Keypair.generate(),rent=await conn.getMinimumBalanceForRentExemption(165,COMMITMENT);return{pair,rent,before:[SystemProgram.createAccount({fromPubkey:walletKey(),newAccountPubkey:pair.publicKey,lamports:exact(amount+BigInt(rent)),space:165,programId:sdk.TOKEN_PROGRAM_ID}),createInitializeAccount3Instruction(pair.publicKey,sdk.NATIVE_MINT,walletKey()),createSyncNativeInstruction(pair.publicKey)],after:[createCloseAccountInstruction(pair.publicKey,walletKey(),walletKey())]};}
-  const budget=()=>[ComputeBudgetProgram.setComputeUnitLimit({units:1_300_000}),...(config.priorityFeeMicroLamports?[ComputeBudgetProgram.setComputeUnitPrice({microLamports:config.priorityFeeMicroLamports})]:[])];
+  const budget=()=>[ComputeBudgetProgram.setComputeUnitLimit({units:1_300_000}),ComputeBudgetProgram.setComputeUnitPrice({microLamports:config.priorityFeeMicroLamports||0})];
   async function rentEstimate(bytes){const cached=rentEstimates.get(bytes);if(cached&&Date.now()-cached.at<60_000)return cached.value;const value=await conn.getMinimumBalanceForRentExemption(bytes,COMMITMENT);rentEstimates.set(bytes,{value,at:Date.now()});return value;}
   async function estimateClaimCosts(playerRecords,holderRewards,currentRound){
     const gameClaims=playerRecords.map(row=>sdk.claimableGame(row.player,row.round).total).filter(value=>value>0n),holderClaims=holderRewards.records||[];
@@ -152,7 +171,7 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     if(!status&&await conn.getBlockHeight(COMMITMENT)>candidate.lastValidBlockHeight){rememberPending(undefined,who);return{status:'expired',signature:candidate.signature};}
     throw new PendingTransactionError(candidate.signature);
   }
-  async function send(instructions,{signers=[],debit=0n,rent=0,extraRent=0,claimAmount=0n,revalidate}={}){
+  async function send(instructions,{signers=[],debit=0n,rent=0,extraRent=0,claimAmount=0n,revalidate,feedQuote=false}={}){
     await resolvePending();await verifyNetwork();const who=wallet,signingProvider=provider;
     if(wallet!==activeActionWallet)throw new Error('Wallet changed during this action. Review the new wallet before trying again.');
     if(!who||!signingProvider)throw new Error('Connect your Solana wallet first.');
@@ -162,7 +181,7 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
     if(tx.serialize({requireAllSignatures:false,verifySignatures:false}).length>1232)throw new Error('This claim proof is too large for a legacy Solana transaction. A reviewed lookup-table client is required before it can be claimed.');
     const message=tx.serializeMessage(),fee=(await conn.getFeeForMessage(tx.compileMessage(),COMMITMENT)).value;if(fee===null)throw new Error('Unable to estimate the Solana transaction fee.');
     const available=await conn.getBalance(sdk.pk(who),confirmedRead());if(BigInt(available)<debit+BigInt(fee+rent+extraRent))throw new Error('Not enough SOL for this action, network fee and temporary account rent. Temporary wrapped-SOL rent is returned atomically.');
-    const simulation=await conn.simulateTransaction(new VersionedTransaction(tx.compileMessage()),{commitment:COMMITMENT,sigVerify:false,minContextSlot:block.context.slot});if(simulation.value.err)throw new Error(`Solana simulation rejected this action. ${programErrorExplanation(simulation.value.err)} No transaction was sent.`);
+    const simulation=await conn.simulateTransaction(new VersionedTransaction(tx.compileMessage()),{commitment:COMMITMENT,sigVerify:false,minContextSlot:block.context.slot});if(simulation.value.err){if(feedQuote&&[3,21,22,23].includes(simulation.value.err?.InstructionError?.[1]?.Custom))throw new QuoteRefreshRequiredError();throw new Error(`Solana simulation rejected this action. ${programErrorExplanation(simulation.value.err)} No transaction was sent.`);}
     if(wallet!==who||provider!==signingProvider)throw new Error('Wallet changed before signing. No transaction was sent.');
     onTransaction({status:'awaiting-wallet',wallet:who,fee,debit:String(debit),refundableRent:rent,accountRent:extraRent,claimAmount:String(claimAmount)});
     const signed=await signingProvider.provider.signTransaction(tx);
@@ -191,16 +210,16 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
       const raw=await getState(),{game,round}=raw;
       if(kind==='feed'){
         if(!Number.isSafeInteger(count)||count<1||count>10_000)throw new Error('Feed size must be 1–10,000 whole keys.');
-        if(round.ended||BigInt(raw.chainNow)>=round.end_time)throw new Error('This round has ended. Settle Piggy before starting another round.');
-        if(expectedRound===undefined||BigInt(expectedRound)!==game.round_id||maxCostLamports===undefined)throw new Error('A displayed maximum cost and round are required.');
+        if(round.ended||BigInt(raw.chainNow)>=round.end_time)throw new QuoteRefreshRequiredError('The round changed or ended. Review the latest round before feeding.');
+        if(expectedRound===undefined||maxCostLamports===undefined)throw new Error('A displayed maximum cost and round are required.');if(BigInt(expectedRound)!==game.round_id)throw new QuoteRefreshRequiredError('A new round started. Review its price before feeding.');
         const quote=costForExactKeys(round.accum_sol_pot,BigInt(count));if(!quote.ok)throw new Error(quote.error);
-        const amount=quote.lamports;if(amount>BigInt(maxCostLamports))throw new Error('The price changed. Review the refreshed cost and try again.');
+        const amount=quote.lamports;if(amount>BigInt(maxCostLamports))throw new QuoteRefreshRequiredError();
         const before=raw.players[0].playerRound,remaining=1_000_000_000n-(before?.accum_sol_added||0n);if(round.accum_sol_pot<100_000_000_000n&&amount>remaining)throw new Error('This feed exceeds the original 1 SOL early-round wallet limit.');
         const affiliate=referral?sdk.pk(referral):before?.last_affiliate_pk!==ZERO?before?.last_affiliate_pk:undefined;if(affiliate&&sdk.pk(affiliate).equals(walletKey()))throw new Error('Your wallet cannot refer itself.');
         const temp=await temporaryWsol(amount),expiry=BigInt(await conn.getSlot(COMMITMENT))+120n;
         const ix=sdk.guardedPurchaseInstruction({programId:program,buyer:walletKey(),version,roundId:game.round_id,source:temp.pair.publicKey,amount,mode,referral:affiliate,minimumKeys:BigInt(count),expiresAtSlot:expiry});
         const playerRent=before?0:await conn.getMinimumBalanceForRentExemption(233,COMMITMENT);
-        signatures.push(await send([...temp.before,ix,...temp.after],{signers:[temp.pair],debit:amount,rent:temp.rent,extraRent:playerRent,revalidate:async()=>{if(BigInt(await conn.getSlot(COMMITMENT))>expiry)throw new Error('This feed quote expired during wallet approval. Refresh and try again.');}}));
+        signatures.push(await send([...temp.before,ix,...temp.after],{signers:[temp.pair],debit:amount,rent:temp.rent,extraRent:playerRent,feedQuote:true,revalidate:async()=>{if(BigInt(await conn.getSlot(COMMITMENT))>expiry)throw new QuoteRefreshRequiredError('The quote expired during approval. Review a new quote before feeding again.');}}));
       }else if(kind==='claimGame'){
         for(const row of raw.players[0].playerRounds){const amount=sdk.claimableGame(row.player,row.round).total;if(roundId&&BigInt(roundId)!==row.player.round_id||amount<=0n)continue;const temp=await temporaryWsol();signatures.push(await send([...temp.before,sdk.withdrawGameInstruction({programId:program,wallet:walletKey(),version,roundId:row.player.round_id,destination:temp.pair.publicKey}),...temp.after],{signers:[temp.pair],rent:temp.rent,claimAmount:amount}));}
         if(!signatures.length)throw new Error('No game SOL is available to claim.');
@@ -219,6 +238,6 @@ export function createPublicGameClient(source,{connection,fetch:fetcher=globalTh
       return{ok:true,wallet:activeActionWallet,signature:signatures.at(-1),signatures,state:await getState()};
     }catch(error){if(signatures.length)return{ok:true,wallet:activeActionWallet,signature:signatures.at(-1),signatures,warning:`${signatures.length} transaction(s) confirmed. ${error.message} Remaining claims can be retried after checking Wallet.`};if(unresolved)error.signature||=unresolved.signature;throw error;}finally{busy=false;activeActionWallet=undefined;}
   }
-  return{config,mode:'public',get connected(){return!!wallet;},get wallet(){return wallet||null;},get walletName(){return provider?.name||null;},get walletId(){return provider?.id||null;},get pendingSignature(){return unresolved?.signature||null;},getState,getViewState:getState,getStatus:identity,connect,disconnect,availableWallets:()=>connector.list(),subscribeWallets:callback=>connector.subscribe(callback),refreshWallets:()=>connector.refresh(),dispose:()=>{unsubscribeConnector();clearConnection();connector.dispose();},action,
+  return{config,mode:'public',get connected(){return!!wallet;},get wallet(){return wallet||null;},get walletName(){return provider?.name||null;},get walletId(){return provider?.id||null;},get pendingSignature(){return unresolved?.signature||null;},getState,getHistory,getViewState:getState,getStatus:identity,connect,disconnect,availableWallets:()=>connector.list(),subscribeWallets:callback=>connector.subscribe(callback),refreshWallets:()=>connector.refresh(),dispose:()=>{unsubscribeConnector();clearConnection();connector.dispose();},action,
     feed:parameters=>action({action:'feed',...parameters}),claimGame:parameters=>action({action:'claimGame',...parameters}),claimHolder:parameters=>action({action:'claimHolder',...parameters}),endRound:()=>action({action:'endRound'}),startRound:()=>action({action:'startRound'})};
 }

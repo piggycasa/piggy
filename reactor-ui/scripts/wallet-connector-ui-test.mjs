@@ -10,7 +10,7 @@ import {CLUSTER_GENESIS} from '../src/solana-config.mjs';
 import {base58Encode} from '../src/solana-signature.mjs';
 
 const output=path.resolve(process.env.PIGGY_WALLET_QA_OUTPUT||'.openai/local/visual-qa/wallet-connector'),buildDir=path.join(output,'build');
-const emptyOnly=process.env.PIGGY_WALLET_QA_FOCUS==='empty';
+const emptyOnly=process.env.PIGGY_WALLET_QA_FOCUS==='empty',updatesOnly=process.env.PIGGY_WALLET_QA_FOCUS==='updates';
 const keys=Array.from({length:6},()=>Keypair.generate().publicKey),[program,mint,...wallets]=keys,version=6789n;
 const game=sdk.gameAddress(program,version),holder=sdk.holderConfigAddress(program,game),vault=sdk.holderVaultAddress(program,game),round=sdk.roundAddress(program,1n,version);
 const now=BigInt(Math.floor(Date.now()/1000)),owner=wallets[0];
@@ -73,13 +73,13 @@ async function dismissToast(page){const button=page.locator('#toast-dismiss');if
 const row=(page,name)=>page.locator('[data-wallet-id]').filter({hasText:name});
 async function connect(page,name,index){await row(page,name).click();await page.waitForFunction(wallet=>document.querySelector('#chain-wallet')?.textContent===wallet,wallets[index].toBase58());await dismissToast(page);}
 async function screenshot(page,name){await page.screenshot({path:path.join(output,`${name}.png`)});}
-async function fixturePage(width,height,{initial=true,remembered,pending=false}={}){
+async function fixturePage(width,height,{initial=true,remembered,pending=false,rpcHandler=rpcResponse}={}){
   const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'}),page=await context.newPage();activePage=page;
   page.on('pageerror',error=>failures.push(error.message));
   await page.route('**/*',async route=>{
     const url=new URL(route.request().url());
     if(url.pathname==='/wallet-qa-config.json')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(config)});
-    if(url.hostname==='wallet-qa-rpc.invalid'){if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rpcResponse(route.request().postDataJSON()))});}
+    if(url.hostname==='wallet-qa-rpc.invalid'){if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rpcHandler(route.request().postDataJSON()))});}
     if(url.hostname==='wallet-qa-proofs.invalid')return route.fulfill({status:404,headers:{'access-control-allow-origin':'*'},body:'No QA entitlements'});
     if(url.hostname==='127.0.0.1')return route.continue();
     failures.push(`Unexpected external request ${url.origin}`);return route.abort();
@@ -99,7 +99,7 @@ try{
   await build({logLevel:'warn',build:{outDir:buildDir,emptyOutDir:true}});
   server=await preview({logLevel:'warn',build:{outDir:buildDir},preview:{host:'127.0.0.1',port:Number(process.env.PIGGY_WALLET_QA_PORT||4324),strictPort:true}});
   browser=await chromium.launch({channel:'chrome',headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-  if(!emptyOnly){
+  if(!emptyOnly&&!updatesOnly){
   {
     const {page,context}=await fixturePage(390,844,{initial:false});await openChooser(page);await page.evaluate(()=>window.__qaWallets.register('Phantom',0));
     await row(page,'Phantom').waitFor();check('Phantom is available in the wallet picker',await row(page,'Phantom').isEnabled());
@@ -143,7 +143,46 @@ try{
     check('switching back preserves the original pending transaction',await page.locator('#buy-button').isDisabled());check('pending-wallet checks never sign',await page.evaluate(()=>window.__qaWallets.counts.sign===0));await context.close();
   }
   }
-  const layouts=emptyOnly?[['tiny-phone',320,568],['tiny-landscape',480,320]]:[['phone',390,844],['tiny-phone',320,568],['landscape',844,390],['tiny-landscape',480,320]];
+  if(!emptyOnly){
+    const originalGame=accounts.get(game.toBase58()),originalRound=accounts.get(round.toBase58());
+    try{
+      // A changing chain quote must refresh in place and wait for another click.
+      let attempts=0;
+      const rpcHandler=request=>{if(request.method==='simulateTransaction'){
+        attempts++;const updated=Buffer.from(roundData);updated.writeBigUInt64LE(10_000_000_000_000n,75);accounts.set(round.toBase58(),account(updated));
+        return{jsonrpc:'2.0',id:request.id,result:{context:{slot:500},value:{err:attempts===1?{InstructionError:[5,{Custom:22}]}:null,logs:[],accounts:null,unitsConsumed:100000,returnData:null,innerInstructions:null}}};
+      }return rpcResponse(request);};
+      for(const [label,width,height]of[['desktop',1440,900],['phone',390,844],['landscape',844,390]]){
+        accounts.set(round.toBase58(),originalRound);attempts=0;
+        const{page,context}=await fixturePage(width,height,{rpcHandler});await openChooser(page);await connect(page,'Test Wallet',0);
+        await page.locator('#buy-button').click();await page.locator('#quote-update').waitFor();
+        check(`${label} stale quote refreshes without reload`,(await page.locator('#quote-update').innerText()).includes('Nothing sent'));
+        check(`${label} refreshed quote shows old and new SOL`,(await page.locator('#quote-update-price').innerText()).includes('→')&&(await page.locator('#quote-update-price').innerText()).includes('SOL'));
+        check(`${label} higher refreshed cost is visible before approval`,await page.locator('#quote-update-price').evaluate(node=>{const parts=node.textContent.split('→').map(value=>parseFloat(value));return parts[1]>parts[0];}));
+        check(`${label} quote refresh does not request a signature`,await page.evaluate(()=>window.__qaWallets.counts.sign===0));
+        check(`${label} price review sits before the enabled buy button`,await page.locator('#quote-update').evaluate(node=>{const r=node.getBoundingClientRect(),b=document.querySelector('#buy-button').getBoundingClientRect();return r.bottom<=b.top+1&&r.top>=0&&b.bottom<=innerHeight;}));
+        check(`${label} quote refresh keeps page fixed`,await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth));
+        await screenshot(page,`${label}-quote-refreshed`);
+        await page.locator('#buy-button').click();await page.waitForFunction(()=>window.__qaWallets.counts.sign===1);
+        check(`${label} only a second explicit click requests approval`,attempts===2);await context.close();
+      }
+      accounts.set(round.toBase58(),originalRound);
+      // All older rounds can be reached from the shared on-chain history.
+      const extendedGame=Buffer.from(gameData);extendedGame.writeBigUInt64LE(31n,1);accounts.set(game.toBase58(),account(extendedGame));
+      for(let id=1n;id<=31n;id++){const data=Buffer.from(roundData);data.writeBigUInt64LE(id,1);data[58]=id<31n?1:0;if(id<31n){wallets[0].toBuffer().copy(data,9);data.writeBigUInt64LE(100_000_000n,267);}accounts.set(sdk.roundAddress(program,id,version).toBase58(),account(data));}
+      for(const[label,width,height]of[['desktop',1440,900],['phone',390,844]]){
+        const{page,context}=await fixturePage(width,height);await page.locator('.history-button').click();await page.locator('#history-dialog[open]').waitFor();
+        check(`${label} shared history shows 20 recent completed rounds`,await page.locator('#history-list .history-item').count()===20);
+        await page.locator('#history-more').scrollIntoViewIfNeeded();await page.locator('#history-more').click();await page.waitForFunction(()=>document.querySelectorAll('#history-list .history-item').length===30);
+        check(`${label} older pages reach the first game round`,(await page.locator('#history-list .history-item').last().innerText()).includes('Round 01'));
+        check(`${label} history links point to on-chain round accounts`,await page.locator('#history-list a[href*="explorer.solana.com/address/"]').count()===30);
+        check(`${label} history works without connecting a wallet`,await page.evaluate(()=>window.__qaWallets.counts.connect===0&&window.__qaWallets.counts.sign===0));
+        check(`${label} long history keeps page fixed`,await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth));
+        await screenshot(page,`${label}-full-history`);await context.close();
+      }
+    }finally{accounts.set(game.toBase58(),originalGame);accounts.set(round.toBase58(),originalRound);}
+  }
+  const layouts=updatesOnly?[]:emptyOnly?[['tiny-phone',320,568],['tiny-landscape',480,320]]:[['phone',390,844],['tiny-phone',320,568],['landscape',844,390],['tiny-landscape',480,320]];
   for(const[name,width,height]of layouts){
     const{page,context}=await fixturePage(width,height);
     if(emptyOnly){await page.waitForFunction(()=>document.querySelector('#timer-caption')?.textContent==='Empty round ends in');check(`${name} empty round describes the actual timer`,await page.locator('#leader-name').textContent()==='No feeds yet');check(`${name} unfunded round has no fabricated jackpot`,parseFloat((await page.locator('#pot-value').textContent()).replace(/,/g,''))===0&&parseFloat((await page.locator('#winner-prize').textContent()).replace(/,/g,''))===0);check(`${name} first-feed explanation is explicit`,await page.locator('.pot-caption').textContent()==='No feeds yet. First feed starts the pot.');await screenshot(page,`${name}-empty-round`);}
