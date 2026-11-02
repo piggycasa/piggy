@@ -99,7 +99,7 @@ export async function startAutoLaunch({root,port=Number(process.env.PORT||8080),
       if(operators){const health=operators.status();state={...state,status:health.ready?'live':'starting-operators',ready:health.ready};}
       else{
         state=await launchTick({root,config,connection});
-        if(state.initialized)operators=await startOperatorService({env:{...env,PORT:'8081',PIGGY_OPERATOR_ENABLED:'true',PIGGY_OPERATOR_DATA_DIR:root,PIGGY_OPERATOR_LEGACY_DATA_DIR:'',PIGGY_PROOFS_MODE:'local'}});
+        if(state.initialized)operators=await startOperatorService({env:{...env,PORT:'0',PIGGY_OPERATOR_ENABLED:'true',PIGGY_OPERATOR_DATA_DIR:root,PIGGY_OPERATOR_LEGACY_DATA_DIR:'',PIGGY_PROOFS_MODE:'local'}});
       }
     }catch{state={...state,status:'checks-pending',ready:false};}
     await publish();
